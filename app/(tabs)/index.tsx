@@ -69,27 +69,29 @@ export default function HomeScreen() {
           resizeMode="contain"
         />
 
-        {/* Sheep on Farm */}
+        {/* Sheep on Farm - Diamond shaped grass block */}
         <View style={styles.sheepContainer}>
           {aliveSheep.map((sheep, index) => {
-            // Container is now exactly the grass block bounds
-            // Get container dimensions for positioning
-            const containerWidth = SCREEN_WIDTH * 0.84 * (0.933 - 0.065);
-            const containerHeight = SCREEN_HEIGHT * 0.48 * (0.782 - 0.134);
+            // Grass block is a diamond/hexagon with these vertices (as % of farmPlatform):
+            // Top: (0.493, 0.000), Left: (0.000, 0.426), Bottom-Left: (0.001, 0.584)
+            // Bottom: (0.533, 0.999), Bottom-Right: (0.999, 0.587), Right: (0.999, 0.427)
+
+            const platformWidth = SCREEN_WIDTH * 0.84;
+            const platformHeight = SCREEN_HEIGHT * 0.48;
+
+            // Diamond center (approximately)
+            const centerX = platformWidth * 0.5;
+            const centerY = platformHeight * 0.5;
             const sheepSize = 60;
 
-            // Position sheep in a grid pattern within the container
+            // Position sheep in a grid pattern within the diamond
             const cols = Math.ceil(Math.sqrt(aliveSheep.length));
             const row = Math.floor(index / cols);
             const col = index % cols;
 
-            // Calculate center of container
-            const centerX = containerWidth / 2;
-            const centerY = containerHeight / 2;
-
-            // Spread sheep around center
-            const offsetX = (col - (cols - 1) / 2) * 80;
-            const offsetY = (row - (cols - 1) / 2) * 80;
+            // Spread sheep around center with smaller offsets to stay within diamond
+            const offsetX = (col - (cols - 1) / 2) * 60;
+            const offsetY = (row - (cols - 1) / 2) * 60;
 
             const posX = centerX - sheepSize / 2 + offsetX;
             const posY = centerY - sheepSize / 2 + offsetY;
@@ -266,12 +268,11 @@ const styles = StyleSheet.create({
   },
   sheepContainer: {
     position: 'absolute',
-    // Position relative to farmPlatform start + grass block offset
-    top: SCREEN_HEIGHT * 0.28 + SCREEN_HEIGHT * 0.48 * 0.134,
-    left: SCREEN_WIDTH * 0.08 + SCREEN_WIDTH * 0.84 * 0.065,
-    // Size matches grass block bounds
-    width: SCREEN_WIDTH * 0.84 * (0.933 - 0.065),
-    height: SCREEN_HEIGHT * 0.48 * (0.782 - 0.134),
+    // Position over the farmPlatform
+    top: SCREEN_HEIGHT * 0.28,
+    left: SCREEN_WIDTH * 0.08,
+    width: SCREEN_WIDTH * 0.84,
+    height: SCREEN_HEIGHT * 0.48,
     zIndex: 5,
     overflow: 'visible',
   },
