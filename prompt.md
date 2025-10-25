@@ -6,3 +6,5 @@ To do:
 
 
 commit after changes
+Alright next i want to implement afunction spawn sheep, which spawns another instance of a sheep somewhere ON
+  THE dirt block randomly. Implement this functrion  

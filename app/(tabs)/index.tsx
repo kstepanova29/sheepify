@@ -72,34 +72,27 @@ export default function HomeScreen() {
         {/* Sheep on Farm */}
         <View style={styles.sheepContainer}>
           {aliveSheep.map((sheep, index) => {
-            // Calculate positions within grass block bounds
-            // Grass block: 6.5% - 93.3% horizontally, 13.4% - 78.2% vertically
-            const containerWidth = SCREEN_WIDTH * 0.84;
-            const containerHeight = SCREEN_HEIGHT * 0.48;
-
-            const grassLeft = containerWidth * 0.065;
-            const grassRight = containerWidth * 0.933;
-            const grassTop = containerHeight * 0.134;
-            const grassBottom = containerHeight * 0.782;
-
-            // Calculate grass block center and dimensions
-            const grassWidth = grassRight - grassLeft;
-            const grassHeight = grassBottom - grassTop;
-            const grassCenterX = grassLeft + grassWidth / 2;
-            const grassCenterY = grassTop + grassHeight / 2;
+            // Container is now exactly the grass block bounds
+            // Get container dimensions for positioning
+            const containerWidth = SCREEN_WIDTH * 0.84 * (0.933 - 0.065);
+            const containerHeight = SCREEN_HEIGHT * 0.48 * (0.782 - 0.134);
             const sheepSize = 60;
 
-            // Position sheep in a grid pattern within the grass block
+            // Position sheep in a grid pattern within the container
             const cols = Math.ceil(Math.sqrt(aliveSheep.length));
             const row = Math.floor(index / cols);
             const col = index % cols;
 
-            // Spread sheep around center, with some offset from grid
+            // Calculate center of container
+            const centerX = containerWidth / 2;
+            const centerY = containerHeight / 2;
+
+            // Spread sheep around center
             const offsetX = (col - (cols - 1) / 2) * 80;
             const offsetY = (row - (cols - 1) / 2) * 80;
 
-            const posX = grassCenterX - sheepSize / 2 + offsetX;
-            const posY = grassCenterY - sheepSize / 2 + offsetY;
+            const posX = centerX - sheepSize / 2 + offsetX;
+            const posY = centerY - sheepSize / 2 + offsetY;
 
             return (
               <Image
@@ -273,13 +266,15 @@ const styles = StyleSheet.create({
   },
   sheepContainer: {
     position: 'absolute',
-    top: SCREEN_HEIGHT * 0.28,
-    left: SCREEN_WIDTH * 0.08,
-    width: SCREEN_WIDTH * 0.84,
-    height: SCREEN_HEIGHT * 0.48,
+    // Position relative to farmPlatform start + grass block offset
+    top: SCREEN_HEIGHT * 0.28 + SCREEN_HEIGHT * 0.48 * 0.134,
+    left: SCREEN_WIDTH * 0.08 + SCREEN_WIDTH * 0.84 * 0.065,
+    // Size matches grass block bounds
+    width: SCREEN_WIDTH * 0.84 * (0.933 - 0.065),
+    height: SCREEN_HEIGHT * 0.48 * (0.782 - 0.134),
     zIndex: 5,
     overflow: 'visible',
-    backgroundColor: 'rgba(0, 255, 0, 0.1)',
+    backgroundColor: 'rgba(0, 255, 0, 0.2)',
   },
   sheepSprite: {
     position: 'absolute',
