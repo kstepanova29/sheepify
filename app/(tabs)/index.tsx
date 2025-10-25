@@ -1,98 +1,218 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import { useRouter } from 'expo-router';
+import React, { useEffect } from 'react';
+import { Animated, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useGameStore } from '../../store/gameStore';
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const router = useRouter();
+  const { user, initializeUser } = useGameStore();
+  const scaleAnim = new Animated.Value(1);
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+  useEffect(() => {
+    // Initialize user if not exists (in production, this would be after login)
+    if (!user) {
+      initializeUser('Shepherd');
+    }
+
+    // Sheep bounce animation
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(scaleAnim, {
+          toValue: 1.1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(scaleAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);
+
+  const calculateDailyWool = () => {
+    if (!user) return 0;
+    return user.sheep.filter(s => s.isAlive).reduce((sum, sheep) => sum + sheep.woolProduction, 0);
+  };
+
+  return (
+    <View style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.title}>🐑 Sheepify</Text>
+        <Text style={styles.subtitle}>Sleep Well, Farm Better</Text>
+      </View>
+
+      {/* Stats Card */}
+      <View style={styles.statsCard}>
+        <View style={styles.statRow}>
+          <Text style={styles.statLabel}>Sheep</Text>
+          <Text style={styles.statValue}>
+            {user?.sheep.filter(s => s.isAlive).length || 0}
+          </Text>
+        </View>
+        <View style={styles.statRow}>
+          <Text style={styles.statLabel}>Wool Blocks</Text>
+          <Text style={styles.statValue}>{user?.woolBlocks || 0} 🧶</Text>
+        </View>
+        <View style={styles.statRow}>
+          <Text style={styles.statLabel}>Streak</Text>
+          <Text style={styles.statValue}>
+            {user?.streak || 0} {user?.streak ? '🔥' : ''}
+          </Text>
+        </View>
+        <View style={styles.statRow}>
+          <Text style={styles.statLabel}>Daily Wool</Text>
+          <Text style={styles.statValue}>{calculateDailyWool()}/day</Text>
+        </View>
+      </View>
+
+      {/* Animated Sheep */}
+      <Animated.Text
+        style={[styles.sheepEmoji, { transform: [{ scale: scaleAnim }] }]}
+      >
+        🐑
+      </Animated.Text>
+
+      {/* Penalty Warning */}
+      {user?.penalties.isInPenalty && (
+        <View style={styles.warningCard}>
+          <Text style={styles.warningText}>
+            🍳 Lamb Chop Alert! You've lost a sheep to the Butcher.
+          </Text>
+          <Text style={styles.warningSubtext}>
+            Get 2 good nights of sleep to revive it!
+          </Text>
+        </View>
+      )}
+
+      {/* Action Buttons */}
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity
+          style={styles.primaryButton}
+          onPress={() => router.push('/sleep-log')}
+        >
+          <Text style={styles.buttonText}>💤 Log Sleep</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.secondaryButton}
+          onPress={() => router.push('/farm')}
+        >
+          <Text style={styles.buttonText}>🏡 View Farm</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.secondaryButton}
+          onPress={() => router.push('/friends')}
+        >
+          <Text style={styles.buttonText}>👥 Sleep Wars</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Fun Message */}
+      <Text style={styles.footerText}>
+        {user?.streak
+          ? `${user.streak} nights in a row! Keep it up! 🌟`
+          : 'Start your sleep journey tonight! 🌙'}
+      </Text>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    flex: 1,
+    backgroundColor: '#1a1a2e',
+    padding: 20,
   },
-  stepContainer: {
-    gap: 8,
+  header: {
+    alignItems: 'center',
+    marginTop: 60,
+    marginBottom: 30,
+  },
+  title: {
+    fontSize: 48,
+    fontWeight: 'bold',
+    color: '#fff',
     marginBottom: 8,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  subtitle: {
+    fontSize: 16,
+    color: '#a8a8d1',
+  },
+  statsCard: {
+    backgroundColor: '#16213e',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+    borderWidth: 2,
+    borderColor: '#0f3460',
+  },
+  statRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  statLabel: {
+    fontSize: 16,
+    color: '#a8a8d1',
+  },
+  statValue: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  sheepEmoji: {
+    fontSize: 120,
+    textAlign: 'center',
+    marginVertical: 20,
+  },
+  warningCard: {
+    backgroundColor: '#ff6b6b',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 20,
+  },
+  warningText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#fff',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  warningSubtext: {
+    fontSize: 14,
+    color: '#ffe5e5',
+    textAlign: 'center',
+  },
+  buttonContainer: {
+    gap: 12,
+  },
+  primaryButton: {
+    backgroundColor: '#e94560',
+    padding: 18,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  secondaryButton: {
+    backgroundColor: '#0f3460',
+    padding: 18,
+    borderRadius: 12,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#16213e',
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  footerText: {
+    marginTop: 20,
+    textAlign: 'center',
+    color: '#a8a8d1',
+    fontSize: 14,
   },
 });
