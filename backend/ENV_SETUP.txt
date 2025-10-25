@@ -1,0 +1,68 @@
+====================================
+ENVIRONMENT SETUP INSTRUCTIONS
+====================================
+
+Compatible with Python 3.14 and later. No playsound dependency required.
+
+To use the Fish Audio Python backend, you need to:
+1. Install dependencies (pygame, requests, python-dotenv)
+2. Create a .env file with your Fish Audio API key
+
+STEPS:
+------
+
+1. Install dependencies (macOS recommended method):
+   cd backend/
+   python3 -m venv venv
+   source venv/bin/activate
+   pip install -r requirements.txt
+
+   This installs:
+   - pygame>=2.5.0 (audio playback engine)
+   - requests>=2.31.0 (HTTP client)
+   - python-dotenv>=1.0.0 (environment variables)
+
+2. Create .env file:
+   touch .env
+
+3. Add your Fish Audio API key:
+   Open .env in a text editor and add:
+   
+   FISH_AUDIO_API_KEY=your-actual-api-key-here
+
+4. Get your API key:
+   - Visit: https://fish.audio/
+   - Sign up or log in
+   - Go to API settings
+   - Generate new API key
+   - Copy the key to your .env file
+
+5. Verify setup:
+   python example_usage.py
+
+EXAMPLE .env FILE:
+------------------
+
+FISH_AUDIO_API_KEY=fa_1234567890abcdefghijklmnopqrstuvwxyz
+
+(Replace with your actual key)
+
+IMPORTANT:
+----------
+
+- Never commit .env to git!
+- .env is already in .gitignore
+- Each developer needs their own .env file
+- Keep your API key secret
+
+OPTIONAL SETTINGS:
+------------------
+
+# Custom voice ID (if you've created one)
+FISH_AUDIO_VOICE_ID=your-voice-id
+
+# Default emotion
+FISH_AUDIO_DEFAULT_EMOTION=excited
+
+====================================
+
