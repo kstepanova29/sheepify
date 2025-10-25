@@ -279,11 +279,13 @@ const styles = StyleSheet.create({
     height: SCREEN_HEIGHT * 0.48,
     zIndex: 5,
     overflow: 'visible',
+    backgroundColor: 'rgba(0, 255, 0, 0.1)',
   },
   sheepSprite: {
     position: 'absolute',
     width: 60,
     height: 60,
+    backgroundColor: 'rgba(255, 0, 0, 0.3)',
   },
 
   // Stats Screen Styles
