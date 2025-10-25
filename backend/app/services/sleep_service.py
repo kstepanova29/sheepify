@@ -11,6 +11,13 @@ import statistics
 
 class SleepService:
     @staticmethod
+    def _normalize_datetime(dt: datetime) -> datetime:
+        """Convert timezone-aware datetime to naive UTC datetime"""
+        if dt.tzinfo is not None:
+            return dt.replace(tzinfo=None)
+        return dt
+
+    @staticmethod
     def start_session(
         db: Session,
         user_id: str,
@@ -27,10 +34,13 @@ class SleepService:
         if active_session:
             raise ValidationError("User already has an active sleep session")
 
+        # Normalize start_time to avoid timezone issues
+        start_time_normalized = SleepService._normalize_datetime(start_time)
+
         # Create new session
         session = SleepSession(
             user_id=user_id,
-            start_time=start_time,
+            start_time=start_time_normalized,
             status='active'
         )
 
@@ -60,8 +70,12 @@ class SleepService:
         if session.status != 'active':
             raise ValidationError("Session is not active")
 
+        # Normalize datetimes to avoid timezone mismatch
+        end_time_normalized = SleepService._normalize_datetime(end_time)
+        start_time_normalized = SleepService._normalize_datetime(session.start_time)
+
         # Calculate duration
-        duration_seconds = (end_time - session.start_time).total_seconds()
+        duration_seconds = (end_time_normalized - start_time_normalized).total_seconds()
         duration_hours = duration_seconds / 3600
 
         # Anti-cheat validation
@@ -69,7 +83,7 @@ class SleepService:
             duration_hours = 16  # Cap at 16 hours
         elif duration_hours < 1:
             session.status = 'completed'
-            session.end_time = end_time
+            session.end_time = end_time_normalized
             session.duration_hours = duration_hours
             db.commit()
             return {
@@ -98,7 +112,7 @@ class SleepService:
             )
 
         # Update session
-        session.end_time = end_time
+        session.end_time = end_time_normalized
         session.duration_hours = duration_hours
         session.quality_score = quality_score
         session.reward_wool = reward['wool'] if reward else 0

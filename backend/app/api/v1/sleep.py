@@ -7,6 +7,7 @@ from app.schemas.sleep import (
     SleepSessionCreate,
     SleepSessionComplete,
     SleepSessionResponse,
+    SleepCompleteResponse,
     SleepStatsResponse
 )
 from app.core.exceptions import ValidationError
@@ -31,7 +32,7 @@ def start_sleep_session(
     except ValidationError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
-@router.post("/complete")
+@router.post("/complete", response_model=SleepCompleteResponse)
 def complete_sleep_session(
     completion_data: SleepSessionComplete,
     db: Session = Depends(get_db)
@@ -56,7 +57,15 @@ def complete_sleep_session(
             user_id=session.user_id,
             end_time=completion_data.end_time
         )
-        return result
+
+        # Convert result to proper response format
+        response_data = {
+            "session": result["session"],
+            "quality_score": result["quality_score"],
+            "reward": result.get("reward")
+        }
+
+        return response_data
     except ValidationError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 

@@ -27,6 +27,17 @@ class SleepSessionResponse(BaseModel):
     class Config:
         from_attributes = True
 
+class SleepReward(BaseModel):
+    """Reward details from completing a sleep session"""
+    wool: int
+    new_sheep: Optional[dict] = None  # Simplified - just the sheep data
+
+class SleepCompleteResponse(BaseModel):
+    """Response for completing a sleep session"""
+    session: SleepSessionResponse
+    quality_score: float
+    reward: Optional[SleepReward]
+
 class SleepStatsResponse(BaseModel):
     total_sessions: int
     total_hours: float

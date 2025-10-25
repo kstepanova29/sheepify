@@ -7,27 +7,27 @@ import {
     Text,
     TouchableOpacity,
     View,
+    ActivityIndicator,
 } from 'react-native';
-import { useGameStore } from '../store/gameStore';
+import { useAuth } from '../contexts/AuthContext';
+import { useSleep } from '../hooks/useSleep';
 
 export default function SleepLogScreen() {
   const router = useRouter();
-  const { startSleep, endSleep, user, activeSleepSession } = useGameStore();
+  const { user } = useAuth();
+  const { activeSession, startSession, completeSession, calculateDuration, loading } = useSleep();
   const [elapsedTime, setElapsedTime] = useState(0);
 
   // Update elapsed time every second when sleep is active
   useEffect(() => {
-    if (!activeSleepSession?.isActive) return;
+    if (!activeSession) return;
 
     const interval = setInterval(() => {
-      const now = new Date().getTime();
-      const bedTime = new Date(activeSleepSession.bedTime).getTime();
-      const elapsed = (now - bedTime) / (1000 * 60 * 60); // hours
-      setElapsedTime(elapsed);
+      setElapsedTime(calculateDuration());
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [activeSleepSession]);
+  }, [activeSession, calculateDuration]);
 
   const formatElapsedTime = (hours: number) => {
     const h = Math.floor(hours);
@@ -48,45 +48,69 @@ export default function SleepLogScreen() {
     return { text: 'Perfect', emoji: '🌟', color: '#6bcf7f' };
   };
 
-  const handleStartSleep = () => {
-    startSleep();
-    Alert.alert(
-      '🌙 Good Night!',
-      'Sleep tracking started. Tap "I Woke Up!" when you wake up in the morning.',
-      [{ text: 'Sleep Well!' }]
-    );
+  const handleStartSleep = async () => {
+    try {
+      await startSession();
+      Alert.alert(
+        '🌙 Good Night!',
+        'Sleep tracking started. Tap "I Woke Up!" when you wake up in the morning.',
+        [{ text: 'Sleep Well!' }]
+      );
+    } catch (err) {
+      Alert.alert('Error', err instanceof Error ? err.message : 'Failed to start sleep session');
+    }
   };
 
-  const handleEndSleep = () => {
-    const duration = elapsedTime;
-    const quality = getSleepQuality(duration);
-    const earnedSheep = duration >= 8 && duration <= 10;
+  const handleEndSleep = async () => {
+    try {
+      const result = await completeSession();
+      const duration = result.session.duration_hours || 0;
+      const quality = getSleepQuality(duration);
 
-    Alert.alert(
-      `${quality.emoji} ${quality.text} Sleep!`,
-      earnedSheep
-        ? `You slept ${duration.toFixed(1)} hours and earned a new sheep! 🐑`
-        : `You slept ${duration.toFixed(1)} hours. ${
-            duration < 8
-              ? 'Sleep 8-10 hours to earn sheep!'
-              : duration > 10
-              ? 'Over 10 hours - try to keep it under 10!'
-              : 'Great sleep!'
-          }`,
-      [
-        {
-          text: 'Nice!',
-          onPress: () => {
-            endSleep();
-            router.back();
+      let message = `You slept ${duration.toFixed(1)} hours!\n`;
+      message += `Quality Score: ${result.quality_score.toFixed(0)}/100\n`;
+      message += `Wool Earned: ${result.wool_earned} 🧶`;
+
+      if (result.new_sheep_awarded) {
+        message += `\n\n🎉 NEW SHEEP EARNED! 🎉\n${result.new_sheep_awarded.custom_name}`;
+      }
+
+      Alert.alert(
+        `${quality.emoji} ${quality.text} Sleep!`,
+        message,
+        [
+          {
+            text: 'Nice!',
+            onPress: () => {
+              router.back();
+            },
           },
-        },
-      ]
-    );
+        ]
+      );
+    } catch (err) {
+      Alert.alert('Error', err instanceof Error ? err.message : 'Failed to complete session');
+    }
   };
 
-  const isSleeping = activeSleepSession?.isActive;
+  const isSleeping = activeSession !== null;
   const quality = getSleepQuality(elapsedTime);
+
+  if (!user) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.content}>
+          <Text style={styles.title}>Please Login</Text>
+          <Text style={styles.subtitle}>You need to be logged in to track sleep</Text>
+          <TouchableOpacity
+            style={styles.startButton}
+            onPress={() => router.push('/auth/login')}
+          >
+            <Text style={styles.startButtonText}>Go to Login</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <ScrollView style={styles.container}>
@@ -114,22 +138,24 @@ export default function SleepLogScreen() {
             <TouchableOpacity
               style={styles.startButton}
               onPress={handleStartSleep}
+              disabled={loading}
             >
-              <Text style={styles.startButtonText}>😴 I'm Going to Sleep</Text>
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.startButtonText}>😴 I'm Going to Sleep</Text>
+              )}
             </TouchableOpacity>
 
-            {/* Streak Info */}
+            {/* User Info */}
             {user && (
               <View style={styles.streakCard}>
                 <Text style={styles.streakText}>
-                  Current Streak: {user.streak} nights 🔥
+                  Sleep Goal: {user.sleep_goal_hours} hours 🎯
                 </Text>
-                {user.penalties.lambChopWarning > 0 && (
-                  <Text style={styles.warningText}>
-                    ⚠️ {3 - user.penalties.lambChopWarning} more bad night(s)
-                    until Lamb Chop penalty!
-                  </Text>
-                )}
+                <Text style={styles.streakText}>
+                  Wool Balance: {user.wool_balance} 🧶
+                </Text>
               </View>
             )}
           </View>
@@ -157,15 +183,20 @@ export default function SleepLogScreen() {
             {/* Sleep Started Time */}
             <Text style={styles.startedText}>
               Started sleeping at{' '}
-              {formatTime(activeSleepSession.bedTime)}
+              {formatTime(new Date(activeSession.start_time))}
             </Text>
 
             {/* Wake Up Button */}
             <TouchableOpacity
               style={styles.wakeButton}
               onPress={handleEndSleep}
+              disabled={loading}
             >
-              <Text style={styles.wakeButtonText}>☀️ I Woke Up!</Text>
+              {loading ? (
+                <ActivityIndicator color="#000" />
+              ) : (
+                <Text style={styles.wakeButtonText}>☀️ I Woke Up!</Text>
+              )}
             </TouchableOpacity>
           </View>
         )}
