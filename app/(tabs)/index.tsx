@@ -10,13 +10,32 @@ import {
   View,
 } from 'react-native';
 import { useGameStore } from '../../store/gameStore';
+import { getRandomPositionInDiamond } from '../../utils/sheepSpawner';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { user, initializeUser } = useGameStore();
+  const { user, initializeUser, addSheep } = useGameStore();
   const flatListRef = useRef<FlatList>(null);
+
+  const handleSpawnSheep = () => {
+    if (!user) return;
+
+    const platformWidth = SCREEN_WIDTH * 0.84;
+    const platformHeight = SCREEN_HEIGHT * 0.48;
+
+    // Get random position within the diamond grass block
+    const position = getRandomPositionInDiamond(platformWidth, platformHeight);
+
+    // Add new sheep at random position
+    addSheep({
+      name: `Sheep #${user.totalSheepEarned + 1}`,
+      earnedDate: new Date(),
+      woolProduction: 1,
+      isAlive: true,
+    });
+  };
 
   useEffect(() => {
     // Initialize user if not exists
@@ -112,6 +131,14 @@ export default function HomeScreen() {
             );
           })}
         </View>
+
+        {/* Spawn Sheep Button - Testing */}
+        <TouchableOpacity
+          style={styles.spawnSheepButton}
+          onPress={handleSpawnSheep}
+        >
+          <Text style={styles.spawnSheepText}>🐑 Spawn Sheep</Text>
+        </TouchableOpacity>
 
         {/* Log Sleep Button - Bottom */}
         <TouchableOpacity
@@ -326,6 +353,22 @@ const styles = StyleSheet.create({
   },
   statValue: {
     fontSize: 18,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  spawnSheepButton: {
+    position: 'absolute',
+    bottom: 110,
+    left: 30,
+    right: 30,
+    padding: 15,
+    backgroundColor: '#4a90e2',
+    borderRadius: 12,
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  spawnSheepText: {
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#fff',
   },
