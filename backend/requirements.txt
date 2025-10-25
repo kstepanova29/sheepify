@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+pydantic
+pydantic-settings
+python-multipart
+
+# PostgreSQL support (uncomment if using PostgreSQL)
+# psycopg2-binary==2.9.9
+

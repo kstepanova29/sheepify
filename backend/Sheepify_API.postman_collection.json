@@ -1,0 +1,525 @@
+{
+	"info": {
+		"name": "Sheepify API - Local Auth",
+		"description": "Complete API collection for Sheepify backend with simple local authentication",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000/api/v1",
+			"type": "string"
+		},
+		{
+			"key": "user_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "session_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "sheep_id",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Register New User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set('user_id', jsonData.id);",
+									"    console.log('✅ User registered! ID:', jsonData.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"sleepy_shepherd\",\n    \"email\": \"sleepy@example.com\",\n    \"password\": \"password123\",\n    \"farm_name\": \"Fluffy Dreams Farm\",\n    \"timezone\": \"America/New_York\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/register",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "register"]
+						},
+						"description": "Register a new user with username/password. Auto-creates a starter sheep."
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set('user_id', jsonData.id);",
+									"    console.log('✅ Logged in! User ID:', jsonData.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"sleepy_shepherd\",\n    \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "login"]
+						},
+						"description": "Login with username and password"
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Profile",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/auth/user/{{user_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "user", "{{user_id}}"]
+						},
+						"description": "Get user profile by ID"
+					},
+					"response": []
+				}
+			],
+			"description": "Simple local authentication with username/password"
+		},
+		{
+			"name": "Sleep Tracking",
+			"item": [
+				{
+					"name": "Start Sleep Session",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set('session_id', jsonData.id);",
+									"    console.log('✅ Sleep session started! ID:', jsonData.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"start_time\": \"2025-01-25T22:00:00Z\",\n    \"planned_wake_time\": \"2025-01-26T06:00:00Z\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/sleep/start?user_id={{user_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["sleep", "start"],
+							"query": [
+								{
+									"key": "user_id",
+									"value": "{{user_id}}"
+								}
+							]
+						},
+						"description": "Start a new sleep tracking session"
+					},
+					"response": []
+				},
+				{
+					"name": "Complete Sleep Session",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    console.log('✅ Sleep completed!');",
+									"    console.log('Quality Score:', jsonData.quality_score);",
+									"    console.log('Wool Earned:', jsonData.reward?.wool);",
+									"    if (jsonData.reward?.new_sheep) {",
+									"        console.log('🎉 NEW SHEEP AWARDED!');",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"session_id\": \"{{session_id}}\",\n    \"end_time\": \"2025-01-26T06:30:00Z\",\n    \"notes\": \"Slept great!\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/sleep/complete",
+							"host": ["{{base_url}}"],
+							"path": ["sleep", "complete"]
+						},
+						"description": "Complete a sleep session and get rewards"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Sleep History",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/sleep/sessions/{{user_id}}?limit=10&offset=0",
+							"host": ["{{base_url}}"],
+							"path": ["sleep", "sessions", "{{user_id}}"],
+							"query": [
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "offset",
+									"value": "0"
+								}
+							]
+						},
+						"description": "Get user's sleep session history with pagination"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Active Session",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/sleep/active/{{user_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["sleep", "active", "{{user_id}}"]
+						},
+						"description": "Get user's currently active sleep session"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Weekly Stats",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/sleep/stats/weekly/{{user_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["sleep", "stats", "weekly", "{{user_id}}"]
+						},
+						"description": "Get weekly sleep statistics"
+					},
+					"response": []
+				}
+			],
+			"description": "Sleep tracking and statistics endpoints"
+		},
+		{
+			"name": "Sheep Management",
+			"item": [
+				{
+					"name": "Get All User Sheep",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var sheep = pm.response.json();",
+									"    console.log('🐑 Total Sheep:', sheep.length);",
+									"    if (sheep.length > 0) {",
+									"        pm.collectionVariables.set('sheep_id', sheep[0].id);",
+									"        console.log('First sheep:', sheep[0].custom_name || sheep[0].sheep_type_id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/sheep/user/{{user_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["sheep", "user", "{{user_id}}"]
+						},
+						"description": "Get all sheep owned by user"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Specific Sheep",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/sheep/{{sheep_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["sheep", "{{sheep_id}}"]
+						},
+						"description": "Get details of a specific sheep"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Sheep (Admin/Reward)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set('sheep_id', jsonData.id);",
+									"    console.log('✅ New sheep created:', jsonData.custom_name);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"sheep_type_id\": \"merino\",\n    \"custom_name\": \"Woolsworth\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/sheep/create?user_id={{user_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["sheep", "create"],
+							"query": [
+								{
+									"key": "user_id",
+									"value": "{{user_id}}"
+								}
+							]
+						},
+						"description": "Create a new sheep (used for rewards/admin)"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Sheep Name/Favorite",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"custom_name\": \"Fluffy Jr.\",\n    \"is_favorite\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/sheep/{{sheep_id}}?user_id={{user_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["sheep", "{{sheep_id}}"],
+							"query": [
+								{
+									"key": "user_id",
+									"value": "{{user_id}}"
+								}
+							]
+						},
+						"description": "Update sheep name or favorite status"
+					},
+					"response": []
+				}
+			],
+			"description": "Sheep management endpoints"
+		},
+		{
+			"name": "Wool Economy",
+			"item": [
+				{
+					"name": "Get Wool Balance",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    console.log('💰 Wool Balance:', jsonData.wool_balance);",
+									"    console.log('📈 Generation Rate:', jsonData.generation_rate, 'wool/hour');",
+									"    console.log('🐑 Total Sheep:', jsonData.total_sheep);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/wool/balance/{{user_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["wool", "balance", "{{user_id}}"]
+						},
+						"description": "Get wool balance and generation rate"
+					},
+					"response": []
+				},
+				{
+					"name": "Collect Wool from Sheep",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    console.log('✅ Wool collected!');",
+									"    console.log('New Balance:', jsonData.wool_balance);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/wool/collect/{{user_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["wool", "collect", "{{user_id}}"]
+						},
+						"description": "Manually collect wool from sheep (1 hour worth)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Transaction History",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/wool/transactions/{{user_id}}?limit=20",
+							"host": ["{{base_url}}"],
+							"path": ["wool", "transactions", "{{user_id}}"],
+							"query": [
+								{
+									"key": "limit",
+									"value": "20"
+								}
+							]
+						},
+						"description": "Get wool transaction history"
+					},
+					"response": []
+				},
+				{
+					"name": "Purchase with Wool",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/wool/purchase?user_id={{user_id}}&item_id=test_item&amount=100",
+							"host": ["{{base_url}}"],
+							"path": ["wool", "purchase"],
+							"query": [
+								{
+									"key": "user_id",
+									"value": "{{user_id}}"
+								},
+								{
+									"key": "item_id",
+									"value": "test_item"
+								},
+								{
+									"key": "amount",
+									"value": "100"
+								}
+							]
+						},
+						"description": "Purchase something with wool"
+					},
+					"response": []
+				}
+			],
+			"description": "Wool economy and transaction endpoints"
+		},
+		{
+			"name": "Health Check",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8000/health",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "8000",
+					"path": ["health"]
+				},
+				"description": "Check if API is running"
+			},
+			"response": []
+		}
+	]
+}
