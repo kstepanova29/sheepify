@@ -52,21 +52,9 @@ export default function HomeScreen() {
           <Text style={styles.farmName}>{user?.username}'s farm</Text>
         </View>
 
-        {/* Sun Icon */}
+        {/* Sun Icon - Below Header */}
         <View style={styles.sunContainer}>
           <Text style={styles.sun}>☀️</Text>
-        </View>
-
-        {/* Currency Sidebar */}
-        <View style={styles.currencyBar}>
-          <View style={styles.currencyItem}>
-            <Text style={styles.currencyIcon}>🧶</Text>
-            <Text style={styles.currencyValue}>{user?.woolBlocks || 0}</Text>
-          </View>
-          <View style={styles.currencyItem}>
-            <Text style={styles.currencyIcon}>🏆</Text>
-            <Text style={styles.currencyValue}>{user?.shepherdTokens || 0}</Text>
-          </View>
         </View>
 
         {/* 3D Farm Platform */}
@@ -117,8 +105,11 @@ export default function HomeScreen() {
 
         {/* Large Shleepy Character */}
         <View style={styles.shleepyContainer}>
-          <Text style={styles.shleepyCharacter}>🐑</Text>
-          <Text style={styles.shleepyArm}>╱|╲</Text>
+          <Image
+            source={require('@/assets/sprites/sheep/default.png')}
+            style={styles.shleepyCharacter}
+            resizeMode="contain"
+          />
         </View>
 
         {/* Stats Card */}
@@ -163,12 +154,11 @@ export default function HomeScreen() {
     <View style={styles.container}>
       <FlatList
         ref={flatListRef}
-        horizontal
         pagingEnabled
         data={screens}
         renderItem={({ item }) => <item.component />}
         keyExtractor={(item) => item.key}
-        showsHorizontalScrollIndicator={false}
+        showsVerticalScrollIndicator={false}
         snapToAlignment="center"
         decelerationRate="fast"
         bounces={false}
@@ -215,8 +205,10 @@ const styles = StyleSheet.create({
   },
   sunContainer: {
     position: 'absolute',
-    top: 70,
-    right: 30,
+    top: 120,
+    alignSelf: 'center',
+    left: '50%',
+    marginLeft: -20,
     zIndex: 10,
   },
   sun: {
@@ -328,12 +320,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   shleepyCharacter: {
-    fontSize: 120,
-  },
-  shleepyArm: {
-    fontSize: 20,
-    color: '#fff',
-    marginTop: -10,
+    width: 200,
+    height: 200,
   },
   statsCard: {
     marginHorizontal: 30,
