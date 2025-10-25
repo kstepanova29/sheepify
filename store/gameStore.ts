@@ -32,16 +32,25 @@ export const useGameStore = create<GameState>()(
       activeSleepSession: null,
 
       initializeUser: (username: string) => {
+        // For testing: Initialize with 1 sheep
+        const testSheep: Sheep = {
+          id: 'test-sheep-1',
+          name: 'Fluffy',
+          earnedDate: new Date(),
+          woolProduction: 1,
+          isAlive: true,
+        };
+
         set({
           user: {
             id: Date.now().toString(),
             username,
-            sheep: [],
-            woolBlocks: 0,
+            sheep: [testSheep],
+            woolBlocks: 5,
             shepherdTokens: 0,
             prankTokens: 0,
-            streak: 0,
-            totalSheepEarned: 0,
+            streak: 1,
+            totalSheepEarned: 1,
             lastSleepDate: null,
             penalties: {
               lambChopWarning: 0,
