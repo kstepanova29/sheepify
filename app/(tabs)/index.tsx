@@ -48,7 +48,12 @@ export default function HomeScreen() {
     return (
       <View style={styles.screen}>
         {/* Farm Name Cloud Header */}
-        <View style={styles.cloudHeader}>
+        <View style={styles.cloudHeaderContainer}>
+          <Image
+            source={require('@/cloud.png')}
+            style={styles.cloudHeader}
+            resizeMode="contain"
+          />
           <Text style={styles.farmName}>{user?.username}'s farm</Text>
         </View>
 
@@ -58,40 +63,29 @@ export default function HomeScreen() {
         </View>
 
         {/* 3D Farm Platform */}
-        <View style={styles.farmPlatform}>
-          {/* Grass Layer */}
-          <View style={styles.grassLayer}>
+        <Image
+          source={require('@/blockofdirt.png')}
+          style={styles.farmPlatform}
+          resizeMode="cover"
+        />
+
+        {/* Sheep on Farm */}
+        <View style={styles.sheepContainer}>
+          {aliveSheep.map((sheep, index) => (
             <Image
-              source={require('@/blockofdirt.png')}
-              style={styles.grassImage}
-              resizeMode="cover"
+              key={sheep.id}
+              source={require('@/assets/sprites/sheep/default.png')}
+              style={[
+                styles.sheepSprite,
+                {
+                  left: 50 + (index * 40),
+                  top: 20 + (index * 10),
+                },
+              ]}
+              resizeMode="contain"
             />
-          </View>
-
-          {/* Sheep on Farm */}
-          <View style={styles.sheepContainer}>
-            {aliveSheep.map((sheep, index) => (
-              <Image
-                key={sheep.id}
-                source={require('@/assets/sprites/sheep/default.png')}
-                style={[
-                  styles.sheepSprite,
-                  {
-                    left: 50 + (index * 40),
-                    top: 20 + (index * 10),
-                  },
-                ]}
-                resizeMode="contain"
-              />
-            ))}
-          </View>
-
-          {/* Platform Base */}
-          <View style={styles.platformBase} />
+          ))}
         </View>
-
-        {/* Trees/Decorations */}
-        <Text style={styles.tree}>🌳</Text>
       </View>
     );
   };
@@ -183,33 +177,32 @@ const styles = StyleSheet.create({
   },
 
   // Farm Screen Styles
+  cloudHeaderContainer: {
+    position: 'absolute',
+    top: 40,
+    left: SCREEN_WIDTH * 0.05,
+    right: SCREEN_WIDTH * 0.05,
+    height: 120,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+  },
   cloudHeader: {
     position: 'absolute',
-    top: 60,
-    left: SCREEN_WIDTH * 0.1,
-    right: SCREEN_WIDTH * 0.1,
-    backgroundColor: '#fff',
-    borderRadius: 50,
-    padding: 20,
-    borderWidth: 3,
-    borderColor: '#333',
-    zIndex: 10,
-    // Cloud shape via border radius
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.15,
-    shadowRadius: 5,
-    elevation: 5,
+    width: '100%',
+    height: '100%',
+    zIndex: 1,
   },
   farmName: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#333',
     textAlign: 'center',
+    zIndex: 2,
   },
   sunContainer: {
     position: 'absolute',
-    top: SCREEN_HEIGHT * 0.1,
+    top: SCREEN_HEIGHT * 0.35,
     right: 30,
     zIndex: 10,
   },
@@ -241,65 +234,23 @@ const styles = StyleSheet.create({
   },
   farmPlatform: {
     position: 'absolute',
-    top: SCREEN_HEIGHT * 0.35,
-    left: SCREEN_WIDTH * 0.15,
-    width: SCREEN_WIDTH * 0.7,
-    height: SCREEN_HEIGHT * 0.35,
-    backgroundColor: '#8B4513',
-    borderRadius: 8,
-    borderWidth: 3,
-    borderColor: '#5D2E0C',
-    // 3D effect
-    shadowColor: '#000',
-    shadowOffset: { width: -2, height: 4 },
-    shadowOpacity: 0.5,
-    shadowRadius: 3,
-    elevation: 8,
-  },
-  grassLayer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: '80%',
-    backgroundColor: '#90EE90',
-    borderTopLeftRadius: 8,
-    borderTopRightRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    overflow: 'hidden',
-  },
-  grassImage: {
-    width: '100%',
-    height: '100%',
+    top: SCREEN_HEIGHT * 0.25,
+    left: SCREEN_WIDTH * 0.05,
+    width: SCREEN_WIDTH * 0.9,
+    height: SCREEN_HEIGHT * 0.5,
   },
   sheepContainer: {
     position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    top: SCREEN_HEIGHT * 0.25,
+    left: SCREEN_WIDTH * 0.05,
+    width: SCREEN_WIDTH * 0.9,
+    height: SCREEN_HEIGHT * 0.5,
+    zIndex: 5,
   },
   sheepSprite: {
     position: 'absolute',
     width: 60,
     height: 60,
-  },
-  platformBase: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: '20%',
-    backgroundColor: '#654321',
-    borderBottomLeftRadius: 8,
-    borderBottomRightRadius: 8,
-  },
-  tree: {
-    position: 'absolute',
-    bottom: SCREEN_HEIGHT * 0.25,
-    right: 40,
-    fontSize: 40,
   },
 
   // Stats Screen Styles
