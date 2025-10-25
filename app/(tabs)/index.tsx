@@ -1,130 +1,185 @@
 import { useRouter } from 'expo-router';
-import React, { useEffect } from 'react';
-import { Animated, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import {
+  Dimensions,
+  FlatList,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { useGameStore } from '../../store/gameStore';
+
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export default function HomeScreen() {
   const router = useRouter();
   const { user, initializeUser } = useGameStore();
-  const scaleAnim = new Animated.Value(1);
+  const flatListRef = useRef<FlatList>(null);
 
   useEffect(() => {
-    // Initialize user if not exists (in production, this would be after login)
+    // Initialize user if not exists
     if (!user) {
       initializeUser('Shepherd');
     }
-
-    // Sheep bounce animation
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(scaleAnim, {
-          toValue: 1.1,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
-        Animated.timing(scaleAnim, {
-          toValue: 1,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
   }, []);
 
-  const calculateDailyWool = () => {
-    if (!user) return 0;
-    return user.sheep.filter(s => s.isAlive).reduce((sum, sheep) => sum + sheep.woolProduction, 0);
+  const getStreakMessage = () => {
+    if (!user) return 'Welcome to Sheepify! 🐑';
+
+    if (user.streak >= 7) {
+      return `Amazing! ${user.streak} night streak! 🌟✨`;
+    } else if (user.streak >= 3) {
+      return `Great job! ${user.streak} nights in a row! 🔥`;
+    } else if (user.streak > 0) {
+      return `Keep it up! ${user.streak} night streak! 💪`;
+    } else if (user.penalties.isInPenalty) {
+      return 'Get back on track! 2 good nights needed 🍳';
+    } else {
+      return 'Start your sleep journey tonight! 🌙';
+    }
   };
 
-  return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.title}>🐑 Sheepify</Text>
-        <Text style={styles.subtitle}>Sleep Well, Farm Better</Text>
+  // Screen 1: Farm View
+  const FarmScreen = () => {
+    const aliveSheep = user?.sheep.filter(s => s.isAlive) || [];
+
+    return (
+      <View style={styles.screen}>
+        {/* Farm Name Cloud Header */}
+        <View style={styles.cloudHeader}>
+          <Text style={styles.farmName}>{user?.username}'s farm</Text>
+        </View>
+
+        {/* Sun Icon */}
+        <View style={styles.sunContainer}>
+          <Text style={styles.sun}>☀️</Text>
+        </View>
+
+        {/* Currency Sidebar */}
+        <View style={styles.currencyBar}>
+          <View style={styles.currencyItem}>
+            <Text style={styles.currencyIcon}>🧶</Text>
+            <Text style={styles.currencyValue}>{user?.woolBlocks || 0}</Text>
+          </View>
+          <View style={styles.currencyItem}>
+            <Text style={styles.currencyIcon}>🏆</Text>
+            <Text style={styles.currencyValue}>{user?.shepherdTokens || 0}</Text>
+          </View>
+        </View>
+
+        {/* 3D Farm Platform */}
+        <View style={styles.farmPlatform}>
+          {/* Grass Layer */}
+          <View style={styles.grassLayer}>
+            <Text style={styles.grassTexture}>🟩🟩🟩🟩🟩</Text>
+          </View>
+
+          {/* Sheep on Farm */}
+          <View style={styles.sheepContainer}>
+            {aliveSheep.map((sheep, index) => (
+              <Image
+                key={sheep.id}
+                source={require('@/assets/sprites/sheep/default.png')}
+                style={[
+                  styles.sheepSprite,
+                  {
+                    left: 50 + (index * 40),
+                    top: 20 + (index * 10),
+                  },
+                ]}
+                resizeMode="contain"
+              />
+            ))}
+          </View>
+
+          {/* Platform Base */}
+          <View style={styles.platformBase} />
+        </View>
+
+        {/* Trees/Decorations */}
+        <Text style={styles.tree}>🌳</Text>
       </View>
+    );
+  };
 
-      {/* Stats Card */}
-      <View style={styles.statsCard}>
-        <View style={styles.statRow}>
-          <Text style={styles.statLabel}>Sheep</Text>
-          <Text style={styles.statValue}>
-            {user?.sheep.filter(s => s.isAlive).length || 0}
-          </Text>
-        </View>
-        <View style={styles.statRow}>
-          <Text style={styles.statLabel}>Wool Blocks</Text>
-          <Text style={styles.statValue}>{user?.woolBlocks || 0} 🧶</Text>
-        </View>
-        <View style={styles.statRow}>
-          <Text style={styles.statLabel}>Streak</Text>
-          <Text style={styles.statValue}>
-            {user?.streak || 0} {user?.streak ? '🔥' : ''}
-          </Text>
-        </View>
-        <View style={styles.statRow}>
-          <Text style={styles.statLabel}>Daily Wool</Text>
-          <Text style={styles.statValue}>{calculateDailyWool()}/day</Text>
-        </View>
-      </View>
+  // Screen 2: Stats/Sleep View
+  const StatsScreen = () => {
+    const aliveSheep = user?.sheep.filter(s => s.isAlive).length || 0;
 
-      {/* Animated Sheep */}
-      <Animated.Text
-        style={[styles.sheepEmoji, { transform: [{ scale: scaleAnim }] }]}
-      >
-        🐑
-      </Animated.Text>
-
-      {/* Penalty Warning */}
-      {user?.penalties.isInPenalty && (
-        <View style={styles.warningCard}>
-          <Text style={styles.warningText}>
-            🍳 Lamb Chop Alert! You've lost a sheep to the Butcher.
-          </Text>
-          <Text style={styles.warningSubtext}>
-            Get 2 good nights of sleep to revive it!
-          </Text>
+    return (
+      <View style={styles.screen}>
+        {/* Dynamic Header Text */}
+        <View style={styles.messageHeader}>
+          <Text style={styles.messageText}>{getStreakMessage()}</Text>
         </View>
-      )}
 
-      {/* Action Buttons */}
-      <View style={styles.buttonContainer}>
+        {/* Large Shleepy Character */}
+        <View style={styles.shleepyContainer}>
+          <Text style={styles.shleepyCharacter}>🐑</Text>
+          <Text style={styles.shleepyArm}>╱|╲</Text>
+        </View>
+
+        {/* Stats Card */}
+        <View style={styles.statsCard}>
+          <View style={styles.statRow}>
+            <Text style={styles.statLabel}>Sleep Streak</Text>
+            <Text style={styles.statValue}>
+              {user?.streak || 0} {user?.streak ? '🔥' : ''}
+            </Text>
+          </View>
+          <View style={styles.statRow}>
+            <Text style={styles.statLabel}>Wool Blocks</Text>
+            <Text style={styles.statValue}>{user?.woolBlocks || 0} 🧶</Text>
+          </View>
+          <View style={styles.statRow}>
+            <Text style={styles.statLabel}>Shepherd Tokens</Text>
+            <Text style={styles.statValue}>{user?.shepherdTokens || 0} 🏆</Text>
+          </View>
+          <View style={styles.statRow}>
+            <Text style={styles.statLabel}>Sheep</Text>
+            <Text style={styles.statValue}>{aliveSheep} 🐑</Text>
+          </View>
+        </View>
+
+        {/* Log Sleep Button */}
         <TouchableOpacity
-          style={styles.primaryButton}
+          style={styles.logSleepButton}
           onPress={() => router.push('/sleep-log')}
         >
-          <Text style={styles.buttonText}>💤 Log Sleep</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.secondaryButton}
-          onPress={() => router.push('/farm')}
-        >
-          <Text style={styles.buttonText}>🏡 View Farm</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.secondaryButton}
-          onPress={() => router.push('/friends')}
-        >
-          <Text style={styles.buttonText}>👥 Sleep Wars</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.secondaryButton, { backgroundColor: '#a78bfa', borderColor: '#9f7aea' }]}
-          onPress={() => router.push('/shleepy-test')}
-        >
-          <Text style={styles.buttonText}>🐑 Test Shleepy AI</Text>
+          <Text style={styles.logSleepText}>💤 Log Sleep</Text>
         </TouchableOpacity>
       </View>
+    );
+  };
 
-      {/* Fun Message */}
-      <Text style={styles.footerText}>
-        {user?.streak
-          ? `${user.streak} nights in a row! Keep it up! 🌟`
-          : 'Start your sleep journey tonight! 🌙'}
-      </Text>
-    </ScrollView>
+  const screens = [
+    { key: 'farm', component: FarmScreen },
+    { key: 'stats', component: StatsScreen },
+  ];
+
+  return (
+    <View style={styles.container}>
+      <FlatList
+        ref={flatListRef}
+        horizontal
+        pagingEnabled
+        data={screens}
+        renderItem={({ item }) => <item.component />}
+        keyExtractor={(item) => item.key}
+        showsHorizontalScrollIndicator={false}
+        snapToAlignment="center"
+        decelerationRate="fast"
+        bounces={false}
+      />
+
+      {/* Page Indicators */}
+      <View style={styles.pageIndicators}>
+        <View style={[styles.indicator, styles.indicatorActive]} />
+        <View style={styles.indicator} />
+      </View>
+    </View>
   );
 }
 
@@ -133,36 +188,166 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#1a1a2e',
   },
-  content: {
-    padding: 20,
+  screen: {
+    width: SCREEN_WIDTH,
+    height: SCREEN_HEIGHT,
+    backgroundColor: '#1a1a2e',
   },
-  header: {
+
+  // Farm Screen Styles
+  cloudHeader: {
+    position: 'absolute',
+    top: 60,
+    left: 20,
+    right: 80,
+    backgroundColor: '#fff',
+    borderRadius: 30,
+    padding: 15,
+    borderWidth: 3,
+    borderColor: '#333',
+    zIndex: 10,
+  },
+  farmName: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#333',
+    textAlign: 'center',
+  },
+  sunContainer: {
+    position: 'absolute',
+    top: 70,
+    right: 30,
+    zIndex: 10,
+  },
+  sun: {
+    fontSize: 40,
+  },
+  currencyBar: {
+    position: 'absolute',
+    left: 20,
+    top: 150,
+    backgroundColor: 'rgba(22, 33, 62, 0.9)',
+    borderRadius: 12,
+    padding: 12,
+    zIndex: 10,
+  },
+  currencyItem: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 60,
-    marginBottom: 30,
+    marginVertical: 8,
   },
-  title: {
-    fontSize: 48,
+  currencyIcon: {
+    fontSize: 24,
+    marginRight: 8,
+  },
+  currencyValue: {
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#fff',
-    marginBottom: 8,
   },
-  subtitle: {
-    fontSize: 16,
-    color: '#a8a8d1',
+  farmPlatform: {
+    position: 'absolute',
+    top: SCREEN_HEIGHT * 0.35,
+    left: SCREEN_WIDTH * 0.15,
+    width: SCREEN_WIDTH * 0.7,
+    height: SCREEN_HEIGHT * 0.35,
+    backgroundColor: '#8B4513',
+    borderRadius: 8,
+    borderWidth: 3,
+    borderColor: '#5D2E0C',
+    // 3D effect
+    shadowColor: '#000',
+    shadowOffset: { width: -2, height: 4 },
+    shadowOpacity: 0.5,
+    shadowRadius: 3,
+    elevation: 8,
   },
-  statsCard: {
+  grassLayer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: '80%',
+    backgroundColor: '#90EE90',
+    borderTopLeftRadius: 8,
+    borderTopRightRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  grassTexture: {
+    fontSize: 12,
+    opacity: 0.6,
+  },
+  sheepContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  sheepSprite: {
+    position: 'absolute',
+    width: 60,
+    height: 60,
+  },
+  platformBase: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: '20%',
+    backgroundColor: '#654321',
+    borderBottomLeftRadius: 8,
+    borderBottomRightRadius: 8,
+  },
+  tree: {
+    position: 'absolute',
+    bottom: SCREEN_HEIGHT * 0.25,
+    right: 40,
+    fontSize: 40,
+  },
+
+  // Stats Screen Styles
+  messageHeader: {
+    marginTop: 80,
+    marginHorizontal: 30,
+    padding: 20,
     backgroundColor: '#16213e',
     borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#0f3460',
+  },
+  messageText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#fff',
+    textAlign: 'center',
+  },
+  shleepyContainer: {
+    marginTop: 40,
+    alignItems: 'center',
+  },
+  shleepyCharacter: {
+    fontSize: 120,
+  },
+  shleepyArm: {
+    fontSize: 20,
+    color: '#fff',
+    marginTop: -10,
+  },
+  statsCard: {
+    marginHorizontal: 30,
+    marginTop: 30,
     padding: 20,
-    marginBottom: 20,
+    backgroundColor: '#16213e',
+    borderRadius: 16,
     borderWidth: 2,
     borderColor: '#0f3460',
   },
   statRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: 15,
   },
   statLabel: {
     fontSize: 16,
@@ -173,55 +358,39 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#fff',
   },
-  sheepEmoji: {
-    fontSize: 120,
-    textAlign: 'center',
-    marginVertical: 20,
-  },
-  warningCard: {
-    backgroundColor: '#ff6b6b',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 20,
-  },
-  warningText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#fff',
-    textAlign: 'center',
-    marginBottom: 4,
-  },
-  warningSubtext: {
-    fontSize: 14,
-    color: '#ffe5e5',
-    textAlign: 'center',
-  },
-  buttonContainer: {
-    gap: 12,
-  },
-  primaryButton: {
+  logSleepButton: {
+    marginHorizontal: 30,
+    marginTop: 30,
+    padding: 20,
     backgroundColor: '#e94560',
-    padding: 18,
-    borderRadius: 12,
+    borderRadius: 16,
     alignItems: 'center',
   },
-  secondaryButton: {
-    backgroundColor: '#0f3460',
-    padding: 18,
-    borderRadius: 12,
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#16213e',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 18,
+  logSleepText: {
+    fontSize: 20,
     fontWeight: 'bold',
+    color: '#fff',
   },
-  footerText: {
-    marginTop: 20,
-    textAlign: 'center',
-    color: '#a8a8d1',
-    fontSize: 14,
+
+  // Page Indicators
+  pageIndicators: {
+    position: 'absolute',
+    bottom: 30,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  indicator: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#a8a8d1',
+    opacity: 0.3,
+  },
+  indicatorActive: {
+    backgroundColor: '#e94560',
+    opacity: 1,
   },
 });
