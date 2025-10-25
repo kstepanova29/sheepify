@@ -71,20 +71,45 @@ export default function HomeScreen() {
 
         {/* Sheep on Farm */}
         <View style={styles.sheepContainer}>
-          {aliveSheep.map((sheep, index) => (
-            <Image
-              key={sheep.id}
-              source={require('@/assets/sprites/sheep/default.png')}
-              style={[
-                styles.sheepSprite,
-                {
-                  left: 50 + (index * 40),
-                  top: 20 + (index * 10),
-                },
-              ]}
-              resizeMode="contain"
-            />
-          ))}
+          {aliveSheep.map((sheep, index) => {
+            // Calculate positions within grass block bounds
+            // Grass block: 6.5% - 93.3% horizontally, 13.4% - 78.2% vertically
+            const containerWidth = SCREEN_WIDTH * 0.84;
+            const containerHeight = SCREEN_HEIGHT * 0.48;
+
+            const grassLeft = containerWidth * 0.065;
+            const grassRight = containerWidth * 0.933;
+            const grassTop = containerHeight * 0.134;
+            const grassBottom = containerHeight * 0.782;
+
+            // Distribute sheep evenly across the grass block
+            const grassWidth = grassRight - grassLeft;
+            const grassHeight = grassBottom - grassTop;
+            const sheepSize = 60;
+
+            // Position sheep in a grid pattern within the grass block
+            const cols = Math.ceil(Math.sqrt(aliveSheep.length));
+            const row = Math.floor(index / cols);
+            const col = index % cols;
+
+            const posX = grassLeft + (col / cols) * (grassWidth - sheepSize);
+            const posY = grassTop + (row / cols) * (grassHeight - sheepSize);
+
+            return (
+              <Image
+                key={sheep.id}
+                source={require('@/assets/sprites/sheep/default.png')}
+                style={[
+                  styles.sheepSprite,
+                  {
+                    left: posX,
+                    top: posY,
+                  },
+                ]}
+                resizeMode="contain"
+              />
+            );
+          })}
         </View>
 
         {/* Log Sleep Button - Bottom */}
