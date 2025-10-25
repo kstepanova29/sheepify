@@ -28,7 +28,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # API Configuration
-FISH_AUDIO_API_URL = "https://api.fish.audio/v1/tts"
+FISH_AUDIO_API_URL = "https://api.fish.audio/v1/voice"
 MAX_RETRIES = 3
 BASE_DELAY_MS = 1000
 
@@ -173,8 +173,9 @@ def generate_speech(
     # Prepare request
     api_key = get_api_key()
     headers = {
+        'Authorization': f'Bearer {api_key}',
         'Content-Type': 'application/json',
-        'Authorization': f'Bearer {api_key}'
+        'Accept': 'application/json'
     }
     
     payload = {
