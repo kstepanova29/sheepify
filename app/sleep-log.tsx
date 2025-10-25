@@ -1,33 +1,42 @@
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     Alert,
     ScrollView,
     StyleSheet,
     Text,
     TouchableOpacity,
-    View
+    View,
 } from 'react-native';
 import { useGameStore } from '../store/gameStore';
 
 export default function SleepLogScreen() {
   const router = useRouter();
-  const { addSleepSession, user } = useGameStore();
+  const { startSleep, endSleep, user, activeSleepSession } = useGameStore();
+  const [elapsedTime, setElapsedTime] = useState(0);
 
-  const [bedTime, setBedTime] = useState(new Date());
-  const [wakeTime, setWakeTime] = useState(new Date());
-  const [showBedTimePicker, setShowBedTimePicker] = useState(false);
-  const [showWakeTimePicker, setShowWakeTimePicker] = useState(false);
+  // Update elapsed time every second when sleep is active
+  useEffect(() => {
+    if (!activeSleepSession?.isActive) return;
 
-  const calculateDuration = () => {
-    const diff = wakeTime.getTime() - bedTime.getTime();
-    const hours = diff / (1000 * 60 * 60);
-    return Math.abs(hours);
+    const interval = setInterval(() => {
+      const now = new Date().getTime();
+      const bedTime = new Date(activeSleepSession.bedTime).getTime();
+      const elapsed = (now - bedTime) / (1000 * 60 * 60); // hours
+      setElapsedTime(elapsed);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [activeSleepSession]);
+
+  const formatElapsedTime = (hours: number) => {
+    const h = Math.floor(hours);
+    const m = Math.floor((hours - h) * 60);
+    return `${h}h ${m}m`;
   };
 
   const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('en-US', {
+    return new Date(date).toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit',
     });
@@ -39,22 +48,17 @@ export default function SleepLogScreen() {
     return { text: 'Perfect', emoji: '🌟', color: '#6bcf7f' };
   };
 
-  const handleSubmit = () => {
-    const duration = calculateDuration();
+  const handleStartSleep = () => {
+    startSleep();
+    Alert.alert(
+      '🌙 Good Night!',
+      'Sleep tracking started. Tap "I Woke Up!" when you wake up in the morning.',
+      [{ text: 'Sleep Well!' }]
+    );
+  };
 
-    if (duration < 2 || duration > 16) {
-      Alert.alert('Invalid Sleep Time', 'Please enter a realistic sleep duration.');
-      return;
-    }
-
-    addSleepSession({
-      date: new Date(),
-      bedTime,
-      wakeTime,
-      duration,
-      quality: duration < 6 ? 'poor' : duration < 8 ? 'good' : 'perfect',
-    });
-
+  const handleEndSleep = () => {
+    const duration = elapsedTime;
     const quality = getSleepQuality(duration);
     const earnedSheep = duration >= 8 && duration <= 10;
 
@@ -65,19 +69,24 @@ export default function SleepLogScreen() {
         : `You slept ${duration.toFixed(1)} hours. ${
             duration < 8
               ? 'Sleep 8-10 hours to earn sheep!'
-              : 'Great sleep, but over 10 hours!'
+              : duration > 10
+              ? 'Over 10 hours - try to keep it under 10!'
+              : 'Great sleep!'
           }`,
       [
         {
           text: 'Nice!',
-          onPress: () => router.back(),
+          onPress: () => {
+            endSleep();
+            router.back();
+          },
         },
       ]
     );
   };
 
-  const duration = calculateDuration();
-  const quality = getSleepQuality(duration);
+  const isSleeping = activeSleepSession?.isActive;
+  const quality = getSleepQuality(elapsedTime);
 
   return (
     <ScrollView style={styles.container}>
@@ -87,99 +96,96 @@ export default function SleepLogScreen() {
           <Text style={styles.backText}>← Back</Text>
         </TouchableOpacity>
 
-        <Text style={styles.title}>💤 Log Your Sleep</Text>
-        <Text style={styles.subtitle}>Track your nightly rest</Text>
+        <Text style={styles.title}>💤 Sleep Tracker</Text>
+        <Text style={styles.subtitle}>
+          {isSleeping ? 'Tracking your sleep...' : 'Ready to track your sleep'}
+        </Text>
 
-        {/* Sleep Time Inputs */}
-        <View style={styles.card}>
-          <Text style={styles.label}>When did you go to bed?</Text>
-          <TouchableOpacity
-            style={styles.timeButton}
-            onPress={() => setShowBedTimePicker(true)}
-          >
-            <Text style={styles.timeText}>{formatTime(bedTime)}</Text>
-            <Text style={styles.timeEmoji}>🛏️</Text>
-          </TouchableOpacity>
-
-          {showBedTimePicker && (
-            <DateTimePicker
-              value={bedTime}
-              mode="time"
-              is24Hour={false}
-              onChange={(event, selectedDate) => {
-                setShowBedTimePicker(false);
-                if (selectedDate) setBedTime(selectedDate);
-              }}
-            />
-          )}
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.label}>When did you wake up?</Text>
-          <TouchableOpacity
-            style={styles.timeButton}
-            onPress={() => setShowWakeTimePicker(true)}
-          >
-            <Text style={styles.timeText}>{formatTime(wakeTime)}</Text>
-            <Text style={styles.timeEmoji}>☀️</Text>
-          </TouchableOpacity>
-
-          {showWakeTimePicker && (
-            <DateTimePicker
-              value={wakeTime}
-              mode="time"
-              is24Hour={false}
-              onChange={(event, selectedDate) => {
-                setShowWakeTimePicker(false);
-                if (selectedDate) setWakeTime(selectedDate);
-              }}
-            />
-          )}
-        </View>
-
-        {/* Duration Display */}
-        <View style={[styles.durationCard, { borderColor: quality.color }]}>
-          <Text style={styles.durationLabel}>Sleep Duration</Text>
-          <Text style={styles.durationValue}>
-            {duration.toFixed(1)} hours {quality.emoji}
-          </Text>
-          <Text style={[styles.qualityText, { color: quality.color }]}>
-            {quality.text} Sleep
-          </Text>
-
-          {duration >= 8 && duration <= 10 && (
-            <View style={styles.rewardBadge}>
-              <Text style={styles.rewardText}>🐑 You'll earn a sheep!</Text>
-            </View>
-          )}
-        </View>
-
-        {/* Streak Info */}
-        {user && (
-          <View style={styles.streakCard}>
-            <Text style={styles.streakText}>
-              Current Streak: {user.streak} nights 🔥
+        {/* Main Card */}
+        {!isSleeping ? (
+          // START SLEEP VIEW
+          <View style={styles.mainCard}>
+            <Text style={styles.bigEmoji}>🌙</Text>
+            <Text style={styles.cardTitle}>Ready for Bed?</Text>
+            <Text style={styles.cardDescription}>
+              Tap the button below when you're going to sleep
             </Text>
-            {user.penalties.lambChopWarning > 0 && (
-              <Text style={styles.warningText}>
-                ⚠️ {3 - user.penalties.lambChopWarning} more bad night(s) until
-                Lamb Chop penalty!
-              </Text>
+
+            <TouchableOpacity
+              style={styles.startButton}
+              onPress={handleStartSleep}
+            >
+              <Text style={styles.startButtonText}>😴 I'm Going to Sleep</Text>
+            </TouchableOpacity>
+
+            {/* Streak Info */}
+            {user && (
+              <View style={styles.streakCard}>
+                <Text style={styles.streakText}>
+                  Current Streak: {user.streak} nights 🔥
+                </Text>
+                {user.penalties.lambChopWarning > 0 && (
+                  <Text style={styles.warningText}>
+                    ⚠️ {3 - user.penalties.lambChopWarning} more bad night(s)
+                    until Lamb Chop penalty!
+                  </Text>
+                )}
+              </View>
             )}
+          </View>
+        ) : (
+          // SLEEPING VIEW
+          <View style={styles.mainCard}>
+            <Text style={styles.bigEmoji}>😴</Text>
+            <Text style={styles.cardTitle}>You're Sleeping...</Text>
+
+            {/* Elapsed Time Display */}
+            <View style={[styles.timeCard, { borderColor: quality.color }]}>
+              <Text style={styles.timeLabel}>Time Asleep</Text>
+              <Text style={styles.timeValue}>{formatElapsedTime(elapsedTime)}</Text>
+              <Text style={[styles.qualityBadge, { backgroundColor: quality.color }]}>
+                {quality.emoji} {quality.text}
+              </Text>
+
+              {elapsedTime >= 8 && elapsedTime <= 10 && (
+                <View style={styles.rewardBadge}>
+                  <Text style={styles.rewardText}>🐑 You'll earn a sheep!</Text>
+                </View>
+              )}
+            </View>
+
+            {/* Sleep Started Time */}
+            <Text style={styles.startedText}>
+              Started sleeping at{' '}
+              {formatTime(activeSleepSession.bedTime)}
+            </Text>
+
+            {/* Wake Up Button */}
+            <TouchableOpacity
+              style={styles.wakeButton}
+              onPress={handleEndSleep}
+            >
+              <Text style={styles.wakeButtonText}>☀️ I Woke Up!</Text>
+            </TouchableOpacity>
           </View>
         )}
 
-        {/* Submit Button */}
-        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-          <Text style={styles.submitText}>✅ Log Sleep</Text>
-        </TouchableOpacity>
-
-        {/* Tips */}
+        {/* Tips Card */}
         <View style={styles.tipsCard}>
-          <Text style={styles.tipsTitle}>💡 Sleep Tips</Text>
-          <Text style={styles.tip}>• Sleep 8-10 hours to earn sheep</Text>
-          <Text style={styles.tip}>• Keep your streak to earn Shepherd Tokens</Text>
-          <Text style={styles.tip}>• Avoid 3 bad nights or lose a sheep!</Text>
+          <Text style={styles.tipsTitle}>💡 How It Works</Text>
+          <Text style={styles.tip}>
+            • Tap "I'm Going to Sleep" when you go to bed
+          </Text>
+          <Text style={styles.tip}>
+            • Tap "I Woke Up!" when you wake up in the morning
+          </Text>
+          <Text style={styles.tip}>• Sleep 8-10 hours to earn sheep 🐑</Text>
+          <Text style={styles.tip}>
+            • Keep your streak to earn Shepherd Tokens
+          </Text>
+          <Text style={styles.tip}>
+            • Avoid 3 bad nights or lose a sheep! 🍳
+          </Text>
         </View>
       </View>
     </ScrollView>
@@ -213,72 +219,104 @@ const styles = StyleSheet.create({
     color: '#a8a8d1',
     marginBottom: 30,
   },
-  card: {
+  mainCard: {
     backgroundColor: '#16213e',
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 16,
-    color: '#a8a8d1',
-    marginBottom: 12,
-  },
-  timeButton: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    borderRadius: 20,
+    padding: 30,
+    marginBottom: 20,
     alignItems: 'center',
-    backgroundColor: '#0f3460',
-    padding: 16,
-    borderRadius: 12,
   },
-  timeText: {
+  bigEmoji: {
+    fontSize: 80,
+    marginBottom: 20,
+  },
+  cardTitle: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#fff',
+    marginBottom: 10,
   },
-  timeEmoji: {
-    fontSize: 32,
+  cardDescription: {
+    fontSize: 16,
+    color: '#a8a8d1',
+    textAlign: 'center',
+    marginBottom: 30,
   },
-  durationCard: {
-    backgroundColor: '#16213e',
+  startButton: {
+    backgroundColor: '#e94560',
+    paddingVertical: 20,
+    paddingHorizontal: 40,
     borderRadius: 16,
-    padding: 24,
-    marginBottom: 16,
-    borderWidth: 3,
+    width: '100%',
     alignItems: 'center',
   },
-  durationLabel: {
+  startButtonText: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  wakeButton: {
+    backgroundColor: '#ffd93d',
+    paddingVertical: 20,
+    paddingHorizontal: 40,
+    borderRadius: 16,
+    width: '100%',
+    alignItems: 'center',
+  },
+  wakeButtonText: {
+    color: '#000',
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  timeCard: {
+    backgroundColor: '#0f3460',
+    borderRadius: 16,
+    padding: 24,
+    marginVertical: 20,
+    borderWidth: 3,
+    alignItems: 'center',
+    width: '100%',
+  },
+  timeLabel: {
     fontSize: 14,
     color: '#a8a8d1',
     marginBottom: 8,
   },
-  durationValue: {
-    fontSize: 36,
+  timeValue: {
+    fontSize: 48,
     fontWeight: 'bold',
     color: '#fff',
-    marginBottom: 8,
+    marginBottom: 12,
   },
-  qualityText: {
-    fontSize: 20,
-    fontWeight: 'bold',
+  qualityBadge: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginBottom: 8,
   },
   rewardBadge: {
     backgroundColor: '#6bcf7f',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    marginTop: 12,
+    marginTop: 8,
   },
   rewardText: {
     color: '#fff',
     fontWeight: 'bold',
+    fontSize: 14,
+  },
+  startedText: {
+    fontSize: 14,
+    color: '#a8a8d1',
+    marginBottom: 20,
   },
   streakCard: {
-    backgroundColor: '#16213e',
+    backgroundColor: '#0f3460',
     borderRadius: 12,
     padding: 16,
-    marginBottom: 16,
+    marginTop: 20,
+    width: '100%',
   },
   streakText: {
     fontSize: 16,
@@ -290,18 +328,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#ff6b6b',
     textAlign: 'center',
-  },
-  submitButton: {
-    backgroundColor: '#e94560',
-    padding: 20,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  submitText: {
-    color: '#fff',
-    fontSize: 20,
-    fontWeight: 'bold',
   },
   tipsCard: {
     backgroundColor: '#0f3460',
