@@ -66,7 +66,7 @@ export default function HomeScreen() {
         <Image
           source={require('@/blockofdirt.png')}
           style={styles.farmPlatform}
-          resizeMode="cover"
+          resizeMode="contain"
         />
 
         {/* Sheep on Farm */}
