@@ -163,12 +163,6 @@ export default function HomeScreen() {
         decelerationRate="fast"
         bounces={false}
       />
-
-      {/* Page Indicators */}
-      <View style={styles.pageIndicators}>
-        <View style={[styles.indicator, styles.indicatorActive]} />
-        <View style={styles.indicator} />
-      </View>
     </View>
   );
 }
@@ -188,14 +182,20 @@ const styles = StyleSheet.create({
   cloudHeader: {
     position: 'absolute',
     top: 60,
-    left: 20,
-    right: 80,
+    left: SCREEN_WIDTH * 0.15,
+    right: SCREEN_WIDTH * 0.15,
     backgroundColor: '#fff',
-    borderRadius: 30,
+    borderRadius: 40,
     padding: 15,
     borderWidth: 3,
     borderColor: '#333',
     zIndex: 10,
+    // Cloud shape via border radius
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
   },
   farmName: {
     fontSize: 24,
@@ -205,10 +205,8 @@ const styles = StyleSheet.create({
   },
   sunContainer: {
     position: 'absolute',
-    top: 120,
-    alignSelf: 'center',
-    left: '50%',
-    marginLeft: -20,
+    top: 100,
+    right: 30,
     zIndex: 10,
   },
   sun: {
@@ -358,27 +356,5 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     color: '#fff',
-  },
-
-  // Page Indicators
-  pageIndicators: {
-    position: 'absolute',
-    bottom: 30,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  indicator: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#a8a8d1',
-    opacity: 0.3,
-  },
-  indicatorActive: {
-    backgroundColor: '#e94560',
-    opacity: 1,
   },
 });
