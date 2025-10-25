@@ -14,9 +14,10 @@ Note: For production mobile app, use expo-av in React Native.
 This Python player is primarily for backend testing and development.
 
 Dependencies:
-- playsound: Simple cross-platform audio playback
-- pygame: Alternative with more control (optional)
+- pygame: Audio playback engine (required)
 - requests: For downloading remote audio files
+
+Compatible with Python 3.14 and later. No playsound dependency required.
 """
 
 import os
@@ -26,19 +27,15 @@ import requests
 from typing import Optional
 from pathlib import Path
 
-# Try to import audio playback libraries (with fallbacks)
-try:
-    from playsound import playsound
-    PLAYER_BACKEND = 'playsound'
-except ImportError:
-    PLAYER_BACKEND = None
-    print("⚠ Warning: playsound not installed. Install with: pip install playsound")
-
+# Import pygame (required dependency)
 try:
     import pygame
+    import pygame.mixer
     PYGAME_AVAILABLE = True
 except ImportError:
     PYGAME_AVAILABLE = False
+    print("❌ ERROR: pygame not installed. Install with: pip install pygame")
+    print("   This is required for audio playback.")
 
 
 class AudioPlayerError(Exception):
@@ -122,7 +119,7 @@ def download_audio(url: str, save_path: Optional[str] = None) -> str:
 
 def play_audio_from_url(url: str, cache: bool = True) -> None:
     """
-    Play audio from a remote URL.
+    Play audio from a remote URL using pygame.
     
     Downloads the audio file first, optionally caches it, then plays it.
     This is the primary method for playing Fish Audio generated speech.
@@ -139,9 +136,9 @@ def play_audio_from_url(url: str, cache: bool = True) -> None:
         >>> result = fish_audio_service.generate_speech("Wake up!")
         >>> play_audio_from_url(result['audio_url'])
     """
-    if PLAYER_BACKEND is None and not PYGAME_AVAILABLE:
+    if not PYGAME_AVAILABLE:
         raise AudioPlayerError(
-            "No audio player available. Install playsound: pip install playsound"
+            "pygame not available. Install with: pip install pygame"
         )
     
     # Download audio (will use cache if enabled)
@@ -163,7 +160,7 @@ def play_audio_from_url(url: str, cache: bool = True) -> None:
 
 def play_local_audio(file_path: str) -> None:
     """
-    Play audio from a local file.
+    Play audio from a local file using pygame.
     
     Supports common audio formats: mp3, wav, ogg, etc.
     
@@ -181,48 +178,54 @@ def play_local_audio(file_path: str) -> None:
     if not os.path.exists(file_path):
         raise AudioPlayerError(f"Audio file not found: {file_path}")
     
+    if not PYGAME_AVAILABLE:
+        raise AudioPlayerError(
+            "pygame not available. Install with: pip install pygame"
+        )
+    
     print(f"▶ Playing: {file_path}")
     
     try:
-        if PLAYER_BACKEND == 'playsound':
-            # Use playsound (simple, cross-platform)
-            playsound(file_path)
-            print("✓ Playback finished")
-            
-        elif PYGAME_AVAILABLE:
-            # Fallback to pygame (more reliable on some systems)
-            pygame.mixer.init()
-            pygame.mixer.music.load(file_path)
-            pygame.mixer.music.play()
-            
-            # Wait for playback to finish
-            while pygame.mixer.music.get_busy():
-                pygame.time.Clock().tick(10)
-            
-            print("✓ Playback finished")
-            pygame.mixer.quit()
-            
-        else:
-            raise AudioPlayerError("No audio player backend available")
-            
+        # Initialize pygame mixer
+        pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=512)
+        
+        # Load and play audio
+        pygame.mixer.music.load(file_path)
+        pygame.mixer.music.play()
+        
+        # Wait for playback to finish
+        while pygame.mixer.music.get_busy():
+            pygame.time.Clock().tick(10)
+        
+        print("✓ Playback finished")
+        
+        # Clean up
+        pygame.mixer.music.unload()
+        pygame.mixer.quit()
+        
+    except pygame.error as e:
+        raise AudioPlayerError(f"pygame playback error: {e}")
     except Exception as e:
         raise AudioPlayerError(f"Failed to play audio: {e}")
 
 
 def stop_audio() -> None:
     """
-    Stop currently playing audio.
+    Stop currently playing audio using pygame.
     
-    Only works with pygame backend.
+    Call this to interrupt audio playback before it finishes naturally.
     """
-    if PYGAME_AVAILABLE:
-        try:
+    if not PYGAME_AVAILABLE:
+        print("⚠ pygame not available, cannot stop audio")
+        return
+    
+    try:
+        if pygame.mixer.get_init():
             pygame.mixer.music.stop()
+            pygame.mixer.music.unload()
             print("⏹ Playback stopped")
-        except:
-            pass
-    else:
-        print("⚠ Stop not supported with playsound backend")
+    except Exception as e:
+        print(f"⚠ Error stopping audio: {e}")
 
 
 def clear_cache() -> int:

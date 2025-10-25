@@ -1,16 +1,15 @@
 # Fish Audio Integration - Python Dependencies
+# Compatible with Python 3.14 and macOS
 
 # Core dependencies
 requests>=2.31.0          # HTTP client for Fish Audio API
 python-dotenv>=1.0.0      # Environment variable management
 
-# Audio playback (choose one or both)
-playsound>=1.3.0          # Simple cross-platform audio playback
-pygame>=2.5.0             # Alternative audio backend (more reliable)
+# Audio playback (required)
+pygame>=2.5.0             # Audio playback engine (pygame only, no playsound)
 
 # Optional dependencies for advanced features
 # pydub>=0.25.1           # Audio manipulation and conversion
-# simpleaudio>=1.0.4      # Another audio playback option
 
 # Development dependencies (optional)
 # flask>=3.0.0            # For building REST API endpoints

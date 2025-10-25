@@ -2,6 +2,8 @@
 
 Python implementation of Fish Audio TTS integration for the Sheepify sleep-tracking app.
 
+**Compatible with Python 3.14 and later. No playsound dependency required.**
+
 ## Overview
 
 This backend provides text-to-speech capabilities using the Fish Audio API. It's designed to be used as a standalone service or integrated into Flask/FastAPI backends.
@@ -11,15 +13,27 @@ This backend provides text-to-speech capabilities using the Fish Audio API. It's
 - ✅ Fish Audio API client with full error handling
 - ✅ Exponential backoff retry logic for rate limiting
 - ✅ Audio caching for faster replay
-- ✅ Cross-platform audio playback (testing)
+- ✅ pygame-based audio playback (macOS compatible)
 - ✅ Claude AI message integration
 - ✅ Emoji stripping for cleaner speech
 - ✅ Batch audio generation
 - ✅ Production-ready error handling
+- ✅ Python 3.14+ compatible
 
 ## Installation
 
 ### 1. Install Dependencies
+
+**Using virtual environment (recommended for macOS):**
+
+```bash
+cd backend
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+**Or install directly:**
 
 ```bash
 cd backend
@@ -27,12 +41,11 @@ pip install -r requirements.txt
 ```
 
 **Required packages:**
-- `requests` - HTTP client for API calls
-- `python-dotenv` - Environment variable management
-- `playsound` - Audio playback (or use `pygame` as alternative)
+- `requests>=2.31.0` - HTTP client for API calls
+- `python-dotenv>=1.0.0` - Environment variable management
+- `pygame>=2.5.0` - Audio playback engine (required)
 
 **Optional packages:**
-- `pygame` - Alternative audio backend (more reliable on some systems)
 - `flask` / `fastapi` - For building REST API endpoints
 
 ### 2. Configure API Key
@@ -407,15 +420,21 @@ Fish Audio pricing (approximate):
 - Check that `FISH_AUDIO_API_KEY` is set
 - Verify no trailing spaces in the key
 
-### "No audio player available"
-- Install playsound: `pip install playsound`
-- Or install pygame: `pip install pygame`
+### "pygame not available"
+- Install pygame: `pip install pygame`
+- On macOS with externally-managed environment, use venv:
+  ```bash
+  python3 -m venv venv
+  source venv/bin/activate
+  pip install pygame
+  ```
 - On Linux, may need: `sudo apt-get install python3-pygame`
 
 ### Audio playback fails
 - Check if file was downloaded successfully
-- Try `pygame` instead of `playsound`
-- Verify audio format is supported (mp3, wav)
+- Verify pygame is properly installed: `python -c "import pygame; print(pygame.ver)"`
+- Verify audio format is supported (mp3, wav, ogg)
+- Check system audio settings and volume
 
 ### Rate limiting (429)
 - Service automatically retries with backoff
