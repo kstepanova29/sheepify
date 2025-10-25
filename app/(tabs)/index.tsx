@@ -109,6 +109,13 @@ export default function HomeScreen() {
         >
           <Text style={styles.buttonText}>👥 Sleep Wars</Text>
         </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.secondaryButton, { backgroundColor: '#a78bfa', borderColor: '#9f7aea' }]}
+          onPress={() => router.push('/shleepy-test')}
+        >
+          <Text style={styles.buttonText}>🐑 Test Shleepy AI</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Fun Message */}
