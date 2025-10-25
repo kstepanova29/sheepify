@@ -82,9 +82,11 @@ export default function HomeScreen() {
             const grassTop = containerHeight * 0.134;
             const grassBottom = containerHeight * 0.782;
 
-            // Distribute sheep evenly across the grass block
+            // Calculate grass block center and dimensions
             const grassWidth = grassRight - grassLeft;
             const grassHeight = grassBottom - grassTop;
+            const grassCenterX = grassLeft + grassWidth / 2;
+            const grassCenterY = grassTop + grassHeight / 2;
             const sheepSize = 60;
 
             // Position sheep in a grid pattern within the grass block
@@ -92,8 +94,12 @@ export default function HomeScreen() {
             const row = Math.floor(index / cols);
             const col = index % cols;
 
-            const posX = grassLeft + (col / cols) * (grassWidth - sheepSize);
-            const posY = grassTop + (row / cols) * (grassHeight - sheepSize);
+            // Spread sheep around center, with some offset from grid
+            const offsetX = (col - (cols - 1) / 2) * 80;
+            const offsetY = (row - (cols - 1) / 2) * 80;
+
+            const posX = grassCenterX - sheepSize / 2 + offsetX;
+            const posY = grassCenterY - sheepSize / 2 + offsetY;
 
             return (
               <Image
