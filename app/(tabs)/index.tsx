@@ -61,7 +61,11 @@ export default function HomeScreen() {
         <View style={styles.farmPlatform}>
           {/* Grass Layer */}
           <View style={styles.grassLayer}>
-            <Text style={styles.grassTexture}>🟩🟩🟩🟩🟩</Text>
+            <Image
+              source={require('@/blockofdirt.png')}
+              style={styles.grassImage}
+              resizeMode="cover"
+            />
           </View>
 
           {/* Sheep on Farm */}
@@ -182,20 +186,20 @@ const styles = StyleSheet.create({
   cloudHeader: {
     position: 'absolute',
     top: 60,
-    left: SCREEN_WIDTH * 0.15,
-    right: SCREEN_WIDTH * 0.15,
+    left: SCREEN_WIDTH * 0.1,
+    right: SCREEN_WIDTH * 0.1,
     backgroundColor: '#fff',
-    borderRadius: 40,
-    padding: 15,
+    borderRadius: 50,
+    padding: 20,
     borderWidth: 3,
     borderColor: '#333',
     zIndex: 10,
     // Cloud shape via border radius
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 5,
+    elevation: 5,
   },
   farmName: {
     fontSize: 24,
@@ -205,7 +209,7 @@ const styles = StyleSheet.create({
   },
   sunContainer: {
     position: 'absolute',
-    top: 100,
+    top: SCREEN_HEIGHT * 0.1,
     right: 30,
     zIndex: 10,
   },
@@ -263,10 +267,11 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
+    overflow: 'hidden',
   },
-  grassTexture: {
-    fontSize: 12,
-    opacity: 0.6,
+  grassImage: {
+    width: '100%',
+    height: '100%',
   },
   sheepContainer: {
     position: 'absolute',
