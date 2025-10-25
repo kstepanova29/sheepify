@@ -30,7 +30,7 @@ export const claudeService = {
   async sendMessage(userMessage: string): Promise<string> {
     try {
       const response = await client.messages.create({
-        model: 'claude-haiku-4-20250514',
+        model: 'claude-3-5-haiku-20241022',
         max_tokens: 150,
         system: SHLEEPY_SYSTEM_PROMPT,
         messages: [
