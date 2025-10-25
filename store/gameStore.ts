@@ -52,9 +52,10 @@ export const useGameStore = create<GameState>()(
       },
 
       startSleep: () => {
+        const now = new Date();
         set({
           activeSleepSession: {
-            bedTime: new Date(),
+            bedTime: now,
             isActive: true,
           },
         });
@@ -65,7 +66,7 @@ export const useGameStore = create<GameState>()(
         if (!activeSleepSession || !activeSleepSession.isActive) return;
 
         const wakeTime = new Date();
-        const bedTime = activeSleepSession.bedTime;
+        const bedTime = new Date(activeSleepSession.bedTime);
         const duration = (wakeTime.getTime() - bedTime.getTime()) / (1000 * 60 * 60);
 
         // Add the completed sleep session
@@ -248,6 +249,11 @@ export const useGameStore = create<GameState>()(
     {
       name: 'sheepify-storage',
       storage: createJSONStorage(() => AsyncStorage),
+      partialize: (state) => ({
+        user: state.user,
+        sleepHistory: state.sleepHistory,
+        activeSleepSession: state.activeSleepSession,
+      }),
     }
   )
 );
