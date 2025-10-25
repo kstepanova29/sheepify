@@ -17,6 +17,7 @@ interface GameState {
   endSleep: () => void;
   addSleepSession: (session: Omit<SleepSession, 'id'>) => void;
   addSheep: (sheep: Omit<Sheep, 'id'>) => void;
+  deleteAllSheep: () => void;
   addWool: (amount: number) => void;
   spendWool: (amount: number) => boolean;
   updateStreak: (isGoodNight: boolean) => void;
@@ -148,6 +149,17 @@ export const useGameStore = create<GameState>()(
                 ...state.user,
                 sheep: [...state.user.sheep, newSheep],
                 totalSheepEarned: state.user.totalSheepEarned + 1,
+              }
+            : null,
+        }));
+      },
+
+      deleteAllSheep: () => {
+        set((state) => ({
+          user: state.user
+            ? {
+                ...state.user,
+                sheep: [],
               }
             : null,
         }));

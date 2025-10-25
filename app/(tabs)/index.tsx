@@ -16,8 +16,9 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { user, initializeUser, addSheep } = useGameStore();
+  const { user, initializeUser, addSheep, deleteAllSheep } = useGameStore();
   const flatListRef = useRef<FlatList>(null);
+  const sheepPositionsRef = useRef<Map<string, { x: number; y: number }>>(new Map());
 
   const handleSpawnSheep = () => {
     if (!user) return;
@@ -35,6 +36,13 @@ export default function HomeScreen() {
       woolProduction: 1,
       isAlive: true,
     });
+  };
+
+  const handleDeleteAllSheep = () => {
+    if (!user) return;
+    // Clear stored positions and delete all sheep
+    sheepPositionsRef.current.clear();
+    deleteAllSheep();
   };
 
   useEffect(() => {
@@ -90,30 +98,18 @@ export default function HomeScreen() {
 
         {/* Sheep on Farm - Diamond shaped grass block */}
         <View style={styles.sheepContainer}>
-          {aliveSheep.map((sheep, index) => {
-            // Grass block is a diamond/hexagon with these vertices (as % of farmPlatform):
-            // Top: (0.493, 0.000), Left: (0.000, 0.426), Bottom-Left: (0.001, 0.584)
-            // Bottom: (0.533, 0.999), Bottom-Right: (0.999, 0.587), Right: (0.999, 0.427)
-
+          {aliveSheep.map((sheep) => {
             const platformWidth = SCREEN_WIDTH * 0.84;
             const platformHeight = SCREEN_HEIGHT * 0.48;
 
-            // Diamond center (approximately)
-            const centerX = platformWidth * 0.5;
-            const centerY = platformHeight * 0.5;
-            const sheepSize = 60;
+            // Get or generate random position for this sheep
+            if (!sheepPositionsRef.current.has(sheep.id)) {
+              const position = getRandomPositionInDiamond(platformWidth, platformHeight);
+              sheepPositionsRef.current.set(sheep.id, position);
+            }
 
-            // Position sheep in a grid pattern within the diamond
-            const cols = Math.ceil(Math.sqrt(aliveSheep.length));
-            const row = Math.floor(index / cols);
-            const col = index % cols;
-
-            // Spread sheep around center with smaller offsets to stay within diamond
-            const offsetX = (col - (cols - 1) / 2) * 60;
-            const offsetY = (row - (cols - 1) / 2) * 60;
-
-            const posX = centerX - sheepSize / 2 + offsetX;
-            const posY = centerY - sheepSize / 2 + offsetY;
+            const position = sheepPositionsRef.current.get(sheep.id);
+            if (!position) return null;
 
             return (
               <Image
@@ -122,8 +118,8 @@ export default function HomeScreen() {
                 style={[
                   styles.sheepSprite,
                   {
-                    left: posX,
-                    top: posY,
+                    left: position.x,
+                    top: position.y,
                   },
                 ]}
                 resizeMode="contain"
@@ -131,6 +127,14 @@ export default function HomeScreen() {
             );
           })}
         </View>
+
+        {/* Delete All Sheep Button - Testing */}
+        <TouchableOpacity
+          style={styles.deleteAllSheepButton}
+          onPress={handleDeleteAllSheep}
+        >
+          <Text style={styles.deleteAllSheepText}>🗑️ Delete All</Text>
+        </TouchableOpacity>
 
         {/* Spawn Sheep Button - Testing */}
         <TouchableOpacity
@@ -353,6 +357,22 @@ const styles = StyleSheet.create({
   },
   statValue: {
     fontSize: 18,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  deleteAllSheepButton: {
+    position: 'absolute',
+    bottom: 180,
+    left: 30,
+    right: 30,
+    padding: 15,
+    backgroundColor: '#ff6b6b',
+    borderRadius: 12,
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  deleteAllSheepText: {
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#fff',
   },
