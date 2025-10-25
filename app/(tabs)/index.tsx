@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Dimensions,
   FlatList,
@@ -19,15 +19,16 @@ export default function HomeScreen() {
   const { user, initializeUser, addSheep, deleteAllSheep } = useGameStore();
   const flatListRef = useRef<FlatList>(null);
   const sheepPositionsRef = useRef<Map<string, { x: number; y: number }>>(new Map());
+  const [, forceUpdate] = useState(0); // Force re-render when positions are loaded
 
-  const handleSpawnSheep = () => {
+  const handleSpawnSheep = async () => {
     if (!user) return;
 
     const platformWidth = SCREEN_WIDTH * 0.84;
     const platformHeight = SCREEN_HEIGHT * 0.48;
 
-    // Get random position within the diamond grass block
-    const position = getRandomPositionInDiamond(platformWidth, platformHeight);
+    // Get random position within the diamond grass block (now async!)
+    const position = await getRandomPositionInDiamond(platformWidth, platformHeight);
 
     // Add new sheep at random position
     addSheep({
@@ -51,6 +52,29 @@ export default function HomeScreen() {
       initializeUser('Shepherd');
     }
   }, []);
+
+  // Load positions for sheep that don't have them yet
+  useEffect(() => {
+    const loadMissingPositions = async () => {
+      if (!user) return;
+
+      const aliveSheep = user.sheep.filter(s => s.isAlive);
+      const platformWidth = SCREEN_WIDTH * 0.84;
+      const platformHeight = SCREEN_HEIGHT * 0.48;
+
+      for (const sheep of aliveSheep) {
+        if (!sheepPositionsRef.current.has(sheep.id)) {
+          const position = await getRandomPositionInDiamond(platformWidth, platformHeight);
+          sheepPositionsRef.current.set(sheep.id, position);
+        }
+      }
+
+      // Force re-render to show newly positioned sheep
+      forceUpdate(prev => prev + 1);
+    };
+
+    loadMissingPositions();
+  }, [user?.sheep.length]); // Re-run when sheep count changes
 
   const getStreakMessage = () => {
     if (!user) return 'Welcome to Sheepify! 🐑';
@@ -99,17 +123,9 @@ export default function HomeScreen() {
         {/* Sheep on Farm - Diamond shaped grass block */}
         <View style={styles.sheepContainer}>
           {aliveSheep.map((sheep) => {
-            const platformWidth = SCREEN_WIDTH * 0.84;
-            const platformHeight = SCREEN_HEIGHT * 0.48;
-
-            // Get or generate random position for this sheep
-            if (!sheepPositionsRef.current.has(sheep.id)) {
-              const position = getRandomPositionInDiamond(platformWidth, platformHeight);
-              sheepPositionsRef.current.set(sheep.id, position);
-            }
-
+            // Get position from ref (loaded by useEffect)
             const position = sheepPositionsRef.current.get(sheep.id);
-            if (!position) return null;
+            if (!position) return null; // Don't render until position is loaded
 
             return (
               <Image

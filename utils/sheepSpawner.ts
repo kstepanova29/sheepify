@@ -1,18 +1,31 @@
 /**
  * Utility functions for spawning sheep at random positions within the GREEN grass contour.
- * Uses OpenCV contour detection to ensure sheep bottom spawns only inside the green area.
+ * Uses the same HSV thresholding and contour detection as checkcoloure.py
  */
 
-import grassContour from './grass_contour.json';
-
-const GRASS_CONTOUR: [number, number][] = grassContour;
+// We'll store the contour once it's loaded
+let grassContour: [number, number][] | null = null;
+const contourPromise = new Promise<[number, number][]>((resolve) => {
+  // Load the contour data from the JSON file we extracted
+  try {
+    const contourData = require('./grass_contour.json');
+    grassContour = contourData;
+    console.log('[SheepSpawner] Grass contour loaded successfully:', contourData.length, 'points');
+    resolve(contourData);
+  } catch (e) {
+    console.error('[SheepSpawner] Failed to load grass contour:', e);
+    resolve([]);
+  }
+});
 
 /**
  * Check if a point is inside the grass contour using ray casting algorithm
  * This is equivalent to cv.pointPolygonTest() in OpenCV
  */
-export const isPointInGrassContour = (x: number, y: number): boolean => {
-  const contour = GRASS_CONTOUR;
+const isPointInGrassContour = (x: number, y: number): boolean => {
+  if (!grassContour || grassContour.length === 0) return false;
+
+  const contour = grassContour;
   let inside = false;
 
   for (let i = 0, j = contour.length - 1; i < contour.length; j = i++) {
@@ -48,31 +61,50 @@ const toImageCoords = (
 
 /**
  * Generate a random position within the grass contour
- * The sheep bottom will be at (x, y + sheepSize/2) to ensure bottom is inside contour
+ * The sheep bottom will be at (x, y + sheepSize) to ensure bottom is inside contour
+ *
+ * IMPORTANT: This is an async function that waits for the contour to load
  */
-export const getRandomPositionInDiamond = (
+export const getRandomPositionInDiamond = async (
   platformWidth: number,
   platformHeight: number,
   sheepSize: number = 60
-): { x: number; y: number } => {
+): Promise<{ x: number; y: number }> => {
+  // Wait for contour to load - this fixes the race condition!
+  await contourPromise;
+
   let x = 0, y = 0;
   let attempts = 0;
   const maxAttempts = 100;
 
   // Rejection sampling: keep trying until sheep bottom is inside grass contour
-  do {
+  if (!grassContour || grassContour.length === 0) {
+    console.error('[SheepSpawner] Contour not available, using fallback positioning');
+    // Fallback only if contour truly failed to load
     x = Math.random() * platformWidth;
     y = Math.random() * platformHeight;
+  } else {
+    do {
+      x = Math.random() * platformWidth;
+      y = Math.random() * platformHeight;
 
-    // Check if the bottom of the sheep (y + sheepSize/2) is inside the contour
-    const [imageX, imageY] = toImageCoords(x, y + sheepSize / 2, platformWidth, platformHeight);
+      // Check if the BOTTOM of the sheep (y + full height) is inside the contour
+      // Fixed: was using y + sheepSize/2 (middle), now uses y + sheepSize (bottom)
+      const [imageX, imageY] = toImageCoords(x, y + sheepSize, platformWidth, platformHeight);
+      const inside = isPointInGrassContour(imageX, imageY);
 
-    if (isPointInGrassContour(imageX, imageY)) {
-      break;
+      if (inside) {
+        console.log('[SheepSpawner] Found valid position:', { x: Math.round(x), y: Math.round(y), imageX, imageY });
+        break;
+      }
+
+      attempts++;
+    } while (attempts < maxAttempts);
+
+    if (attempts >= maxAttempts) {
+      console.warn('[SheepSpawner] Max attempts reached, using last position');
     }
-
-    attempts++;
-  } while (attempts < maxAttempts);
+  }
 
   // Clamp to ensure sheep doesn't go out of bounds
   x = Math.max(sheepSize / 2, Math.min(platformWidth - sheepSize / 2, x));
@@ -80,3 +112,8 @@ export const getRandomPositionInDiamond = (
 
   return { x, y };
 };
+
+// Load contour on module load
+contourPromise.then((contour) => {
+  grassContour = contour;
+});
