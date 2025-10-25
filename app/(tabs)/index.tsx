@@ -86,6 +86,14 @@ export default function HomeScreen() {
             />
           ))}
         </View>
+
+        {/* Log Sleep Button - Bottom */}
+        <TouchableOpacity
+          style={styles.logSleepButton}
+          onPress={() => router.push('/sleep-log')}
+        >
+          <Text style={styles.logSleepText}>💤 Log Sleep</Text>
+        </TouchableOpacity>
       </View>
     );
   };
@@ -131,14 +139,6 @@ export default function HomeScreen() {
             <Text style={styles.statValue}>{aliveSheep} 🐑</Text>
           </View>
         </View>
-
-        {/* Log Sleep Button */}
-        <TouchableOpacity
-          style={styles.logSleepButton}
-          onPress={() => router.push('/sleep-log')}
-        >
-          <Text style={styles.logSleepText}>💤 Log Sleep</Text>
-        </TouchableOpacity>
       </View>
     );
   };
@@ -180,9 +180,9 @@ const styles = StyleSheet.create({
   cloudHeaderContainer: {
     position: 'absolute',
     top: 40,
-    left: SCREEN_WIDTH * 0.05,
-    right: SCREEN_WIDTH * 0.05,
-    height: 120,
+    left: SCREEN_WIDTH * 0.02,
+    right: SCREEN_WIDTH * 0.02,
+    height: 140,
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 10,
@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
   },
   sunContainer: {
     position: 'absolute',
-    top: SCREEN_HEIGHT * 0.35,
+    top: SCREEN_HEIGHT * 0.20,
     right: 30,
     zIndex: 10,
   },
@@ -234,18 +234,20 @@ const styles = StyleSheet.create({
   },
   farmPlatform: {
     position: 'absolute',
-    top: SCREEN_HEIGHT * 0.25,
-    left: SCREEN_WIDTH * 0.05,
-    width: SCREEN_WIDTH * 0.9,
-    height: SCREEN_HEIGHT * 0.5,
+    top: SCREEN_HEIGHT * 0.30,
+    left: SCREEN_WIDTH * 0.125,
+    width: SCREEN_WIDTH * 0.75,
+    height: SCREEN_HEIGHT * 0.42,
+    overflow: 'visible',
   },
   sheepContainer: {
     position: 'absolute',
-    top: SCREEN_HEIGHT * 0.25,
-    left: SCREEN_WIDTH * 0.05,
-    width: SCREEN_WIDTH * 0.9,
-    height: SCREEN_HEIGHT * 0.5,
+    top: SCREEN_HEIGHT * 0.28,
+    left: SCREEN_WIDTH * 0.1,
+    width: SCREEN_WIDTH * 0.8,
+    height: SCREEN_HEIGHT * 0.45,
     zIndex: 5,
+    overflow: 'visible',
   },
   sheepSprite: {
     position: 'absolute',
@@ -301,12 +303,15 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   logSleepButton: {
-    marginHorizontal: 30,
-    marginTop: 30,
+    position: 'absolute',
+    bottom: 30,
+    left: 30,
+    right: 30,
     padding: 20,
     backgroundColor: '#e94560',
     borderRadius: 16,
     alignItems: 'center',
+    zIndex: 10,
   },
   logSleepText: {
     fontSize: 20,
