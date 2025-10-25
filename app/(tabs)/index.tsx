@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import React, { useEffect } from 'react';
-import { Animated, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Animated, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useGameStore } from '../../store/gameStore';
 
 export default function HomeScreen() {
@@ -37,7 +37,7 @@ export default function HomeScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>🐑 Sheepify</Text>
@@ -109,6 +109,13 @@ export default function HomeScreen() {
         >
           <Text style={styles.buttonText}>👥 Sleep Wars</Text>
         </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.secondaryButton, { backgroundColor: '#a78bfa', borderColor: '#9f7aea' }]}
+          onPress={() => router.push('/shleepy-test')}
+        >
+          <Text style={styles.buttonText}>🐑 Test Shleepy AI</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Fun Message */}
@@ -117,7 +124,7 @@ export default function HomeScreen() {
           ? `${user.streak} nights in a row! Keep it up! 🌟`
           : 'Start your sleep journey tonight! 🌙'}
       </Text>
-    </View>
+    </ScrollView>
   );
 }
 
@@ -125,6 +132,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#1a1a2e',
+  },
+  content: {
     padding: 20,
   },
   header: {
