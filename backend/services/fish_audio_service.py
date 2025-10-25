@@ -28,7 +28,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # API Configuration
-FISH_AUDIO_API_URL = "https://api.fish.audio/v1/voice"
+FISH_AUDIO_API_URL = "https://api.fish.audio/v1/tts"
 MAX_RETRIES = 3
 BASE_DELAY_MS = 1000
 
@@ -202,28 +202,60 @@ def generate_speech(
             
             # Handle successful response
             if response.ok:
-                data = response.json()
+                # Check if response is binary audio (MP3) or JSON
+                content_type = response.headers.get('Content-Type', '')
                 
-                result = {
-                    'audio_url': data.get('audio_url') or data.get('url'),
-                    'duration': data.get('duration', 0),
-                    'voice_id': data.get('voice_id', voice_id or 'default')
-                }
-                
-                # Download and save file if requested
-                if save_to:
-                    audio_url = result['audio_url']
-                    audio_response = requests.get(audio_url, timeout=30)
+                # Fish Audio API returns the MP3 file directly as binary data
+                if 'audio' in content_type or 'octet-stream' in content_type or len(response.content) > 1000:
+                    # Response is binary audio data
+                    print("✓ Received binary audio data from Fish Audio API")
                     
-                    if audio_response.ok:
-                        with open(save_to, 'wb') as f:
-                            f.write(audio_response.content)
-                        result['local_path'] = save_to
-                        print(f"✓ Audio saved to: {save_to}")
+                    # Generate temp file path
+                    if save_to:
+                        temp_path = save_to
                     else:
-                        print(f"⚠ Failed to download audio file: {audio_response.status_code}")
+                        timestamp = int(time.time() * 1000)
+                        temp_path = f"/tmp/fish_audio_{timestamp}.mp3"
+                    
+                    # Save binary audio to file
+                    with open(temp_path, 'wb') as f:
+                        f.write(response.content)
+                    
+                    print(f"✓ Audio saved to: {temp_path}")
+                    
+                    result = {
+                        'local_path': temp_path,
+                        'format': format,
+                        'source': 'fish_audio',
+                        'voice_id': voice_id or 'default'
+                    }
+                    
+                    return result
                 
-                return result
+                else:
+                    # Response is JSON (fallback for other API versions)
+                    data = response.json()
+                    
+                    result = {
+                        'audio_url': data.get('audio_url') or data.get('url'),
+                        'duration': data.get('duration', 0),
+                        'voice_id': data.get('voice_id', voice_id or 'default')
+                    }
+                    
+                    # Download and save file if requested
+                    if save_to:
+                        audio_url = result['audio_url']
+                        audio_response = requests.get(audio_url, timeout=30)
+                        
+                        if audio_response.ok:
+                            with open(save_to, 'wb') as f:
+                                f.write(audio_response.content)
+                            result['local_path'] = save_to
+                            print(f"✓ Audio saved to: {save_to}")
+                        else:
+                            print(f"⚠ Failed to download audio file: {audio_response.status_code}")
+                    
+                    return result
             
             # Handle error responses
             error_data = response.json() if response.text else {}

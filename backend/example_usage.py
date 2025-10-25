@@ -45,13 +45,24 @@ def example_1_basic_tts():
         )
         
         print(f"✓ Audio generated successfully!")
-        print(f"  URL: {result['audio_url']}")
-        print(f"  Duration: {result['duration']} seconds")
-        print(f"  Voice ID: {result['voice_id']}")
         
-        # Play the audio
-        print("\n▶ Playing audio...")
-        audio_player.play_audio_from_url(result['audio_url'])
+        # Handle both local file and URL responses
+        if 'local_path' in result:
+            print(f"  Local path: {result['local_path']}")
+            print(f"  Format: {result.get('format', 'mp3')}")
+            print(f"  Voice ID: {result['voice_id']}")
+            
+            # Play the audio from local file
+            print("\n▶ Playing audio...")
+            audio_player.play_local_audio(result['local_path'])
+        else:
+            print(f"  URL: {result['audio_url']}")
+            print(f"  Duration: {result.get('duration', 0)} seconds")
+            print(f"  Voice ID: {result['voice_id']}")
+            
+            # Play the audio from URL
+            print("\n▶ Playing audio...")
+            audio_player.play_audio_from_url(result['audio_url'])
         
         print("✓ Example 1 completed!\n")
         return True
@@ -84,7 +95,12 @@ def example_2_custom_voice():
         print(f"  Emotion: energetic")
         
         print("\n▶ Playing audio...")
-        audio_player.play_audio_from_url(result['audio_url'])
+        
+        # Handle both local file and URL responses
+        if 'local_path' in result:
+            audio_player.play_local_audio(result['local_path'])
+        else:
+            audio_player.play_audio_from_url(result['audio_url'])
         
         print("✓ Example 2 completed!\n")
         return True
@@ -153,7 +169,12 @@ def example_4_claude_integration():
         print(f"  Auto-detected emotion based on message tone")
         
         print("\n▶ Playing audio...")
-        audio_player.play_audio_from_url(result['audio_url'])
+        
+        # Handle both local file and URL responses
+        if 'local_path' in result:
+            audio_player.play_local_audio(result['local_path'])
+        else:
+            audio_player.play_audio_from_url(result['audio_url'])
         
         print("✓ Example 4 completed!\n")
         return True
@@ -183,7 +204,12 @@ def example_5_error_handling():
         if result:
             print("✓ Speech generated successfully!")
             print("\n▶ Playing audio...")
-            audio_player.play_audio_from_url(result['audio_url'])
+            
+            # Handle both local file and URL responses
+            if 'local_path' in result:
+                audio_player.play_local_audio(result['local_path'])
+            else:
+                audio_player.play_audio_from_url(result['audio_url'])
         else:
             print("⚠ Speech generation failed, falling back to text")
             print(f"→ Text message: {text}")
@@ -207,20 +233,32 @@ def example_6_cache_management():
         
         print(f"\n📝 Input text: {text}")
         
-        # First generation (downloads and caches)
-        print("\n🔄 First generation (downloading)...")
+        # First generation
+        print("\n🔄 First generation...")
         result = fish_audio_service.generate_speech(text=text)
         
         import time
         start = time.time()
-        audio_player.play_audio_from_url(result['audio_url'], cache=True)
-        first_time = time.time() - start
         
-        # Second play (uses cache)
-        print("\n⚡ Second play (from cache)...")
-        start = time.time()
-        audio_player.play_audio_from_url(result['audio_url'], cache=True)
-        second_time = time.time() - start
+        # Handle both local file and URL responses
+        if 'local_path' in result:
+            audio_player.play_local_audio(result['local_path'])
+            first_time = time.time() - start
+            
+            # Second play (file is already saved locally)
+            print("\n⚡ Second play (from saved file)...")
+            start = time.time()
+            audio_player.play_local_audio(result['local_path'])
+            second_time = time.time() - start
+        else:
+            audio_player.play_audio_from_url(result['audio_url'], cache=True)
+            first_time = time.time() - start
+            
+            # Second play (uses cache)
+            print("\n⚡ Second play (from cache)...")
+            start = time.time()
+            audio_player.play_audio_from_url(result['audio_url'], cache=True)
+            second_time = time.time() - start
         
         print(f"\n📊 Performance comparison:")
         print(f"  First play:  {first_time:.2f}s (with download)")
