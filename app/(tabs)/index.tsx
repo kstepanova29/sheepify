@@ -255,7 +255,7 @@ export default function HomeScreen() {
 
             return (
               <Image
-                key={`${sheep.id}-${sheepFrame}`}
+                key={sheep.id}
                 source={
                   sheepFrame === 0
                     ? require('@/assets/sprites/sheep/sheep-frame1.png')
