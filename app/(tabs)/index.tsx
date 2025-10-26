@@ -31,6 +31,7 @@ const IMAGES = {
   windmillFrame2: require('@/farm-windmill-2.png'),
   sheepFrame1: require('@/assets/sprites/sheep/sheep-frame1.png'),
   sheepFrame2: require('@/assets/sprites/sheep/sheep-frame2.png'),
+  sheepDefault: require('@/assets/sprites/sheep/default.png'),
 };
 
 export default function HomeScreen() {
@@ -238,25 +239,41 @@ export default function HomeScreen() {
 
         {/* Sun/Moon Icon - Below Header */}
         <View style={styles.sunContainer}>
-          <Image
-            key="sun-moon-image"
-            source={
-              isNightMode
-                ? (moonFrame === 0 ? IMAGES.moonFrame1 : IMAGES.moonFrame2)
-                : IMAGES.sun
-            }
-            style={isNightMode ? styles.moon : styles.sun}
-            resizeMode="contain"
-          />
+          {isNightMode ? (
+            <>
+              <Image
+                source={IMAGES.moonFrame1}
+                style={[styles.moon, { opacity: moonFrame === 0 ? 1 : 0 }]}
+                resizeMode="contain"
+              />
+              <Image
+                source={IMAGES.moonFrame2}
+                style={[styles.moon, { opacity: moonFrame === 1 ? 1 : 0, position: 'absolute' }]}
+                resizeMode="contain"
+              />
+            </>
+          ) : (
+            <Image
+              source={IMAGES.sun}
+              style={styles.sun}
+              resizeMode="contain"
+            />
+          )}
         </View>
 
         {/* 3D Farm Platform with Animated Windmill */}
-        <Image
-          key="windmill-platform"
-          source={windmillFrame === 0 ? IMAGES.windmillFrame1 : IMAGES.windmillFrame2}
-          style={styles.farmPlatform}
-          resizeMode="contain"
-        />
+        <View style={styles.farmPlatform}>
+          <Image
+            source={IMAGES.windmillFrame1}
+            style={[styles.farmPlatformImage, { opacity: windmillFrame === 0 ? 1 : 0 }]}
+            resizeMode="contain"
+          />
+          <Image
+            source={IMAGES.windmillFrame2}
+            style={[styles.farmPlatformImage, { opacity: windmillFrame === 1 ? 1 : 0 }]}
+            resizeMode="contain"
+          />
+        </View>
 
         {/* Sheep on Farm - Diamond shaped grass block */}
         <View style={styles.sheepContainer}>
@@ -266,18 +283,27 @@ export default function HomeScreen() {
             if (!position) return null; // Don't render until position is loaded
 
             return (
-              <Image
+              <View
                 key={sheep.id}
-                source={sheepFrame === 0 ? IMAGES.sheepFrame1 : IMAGES.sheepFrame2}
                 style={[
-                  styles.sheepSprite,
+                  styles.sheepSpriteContainer,
                   {
                     left: position.x,
                     top: position.y,
                   },
                 ]}
-                resizeMode="contain"
-              />
+              >
+                <Image
+                  source={IMAGES.sheepFrame1}
+                  style={[styles.sheepSprite, { opacity: sheepFrame === 0 ? 1 : 0 }]}
+                  resizeMode="contain"
+                />
+                <Image
+                  source={IMAGES.sheepFrame2}
+                  style={[styles.sheepSprite, { opacity: sheepFrame === 1 ? 1 : 0, position: 'absolute' }]}
+                  resizeMode="contain"
+                />
+              </View>
             );
           })}
         </View>
@@ -336,7 +362,7 @@ export default function HomeScreen() {
         {/* Large Shleepy Character */}
         <View style={styles.shleepyContainer}>
           <Image
-            source={require('@/assets/sprites/sheep/default.png')}
+            source={IMAGES.sheepDefault}
             style={styles.shleepyCharacter}
             resizeMode="contain"
           />
@@ -482,6 +508,11 @@ const styles = StyleSheet.create({
     height: SCREEN_HEIGHT * 0.48,
     overflow: 'visible',
   },
+  farmPlatformImage: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+  },
   sheepContainer: {
     position: 'absolute',
     // Position over the farmPlatform
@@ -492,8 +523,12 @@ const styles = StyleSheet.create({
     zIndex: 5,
     overflow: 'visible',
   },
-  sheepSprite: {
+  sheepSpriteContainer: {
     position: 'absolute',
+    width: 60,
+    height: 60,
+  },
+  sheepSprite: {
     width: 60,
     height: 60,
   },
