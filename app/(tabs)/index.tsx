@@ -582,9 +582,10 @@ const styles = StyleSheet.create({
 
   // Stats Screen Styles
   shleepyContainer: {
-    marginTop: 250,  // Moved down significantly
+    marginTop: 240,  // Positioned to keep speech bubble within screen bounds
     alignItems: 'center',
     position: 'relative',
+    overflow: 'visible',  // Allow speech bubble to show above Shleepy
   },
   shleepyCharacter: {
     width: 320,  // Made bigger
@@ -592,7 +593,7 @@ const styles = StyleSheet.create({
   },
   speechBubble: {
     position: 'absolute',
-    top: -320,  // Positioned above the bigger head
+    top: -210,  // Positioned above the bigger head
     alignSelf: 'center',  // Center horizontally
     width: 1400,  // WAY bigger bubble
     height: 350,  // WAY bigger height
