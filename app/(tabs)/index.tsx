@@ -314,7 +314,7 @@ const styles = StyleSheet.create({
   // Farm Screen Styles
   cloudHeaderContainer: {
     position: 'absolute',
-    top: 15,  // Moved up 5 pixels (20 - 5)
+    top: 10,  // Moving UP more (smaller value = higher on screen)
     left: SCREEN_WIDTH * -0.15,  // Even wider cloud
     right: SCREEN_WIDTH * -0.15,  // Even wider cloud
     height: 280,  // 2x original height for bigger cloud
