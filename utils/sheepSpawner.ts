@@ -89,7 +89,7 @@ export const getRandomPositionInDiamond = async (
       y = Math.random() * platformHeight;
 
       // Move the sheep UP by its height + extra offset so it sits on top of the grass
-      const offsetY = y - sheepSize - 100; // Extra 100px offset
+      const offsetY = y - sheepSize - 50; // Reduced offset to 50px (half of previous 100px)
 
       // Check if ALL FOUR CORNERS of the OFFSET sheep are inside the contour
       // This ensures the entire sheep sprite is within the grass area
