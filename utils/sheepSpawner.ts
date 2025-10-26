@@ -88,13 +88,32 @@ export const getRandomPositionInDiamond = async (
       x = Math.random() * platformWidth;
       y = Math.random() * platformHeight;
 
-      // Check if the BOTTOM of the sheep (y + full height) is inside the contour
-      // Fixed: was using y + sheepSize/2 (middle), now uses y + sheepSize (bottom)
-      const [imageX, imageY] = toImageCoords(x, y + sheepSize, platformWidth, platformHeight);
-      const inside = isPointInGrassContour(imageX, imageY);
+      // Move the sheep UP by its height + extra offset so it sits on top of the grass
+      const offsetY = y - sheepSize - 100; // Extra 100px offset
 
-      if (inside) {
-        console.log('[SheepSpawner] Found valid position:', { x: Math.round(x), y: Math.round(y), imageX, imageY });
+      // Check if ALL FOUR CORNERS of the OFFSET sheep are inside the contour
+      // This ensures the entire sheep sprite is within the grass area
+      const topLeft = toImageCoords(x, offsetY, platformWidth, platformHeight);
+      const topRight = toImageCoords(x + sheepSize, offsetY, platformWidth, platformHeight);
+      const bottomLeft = toImageCoords(x, offsetY + sheepSize, platformWidth, platformHeight);
+      const bottomRight = toImageCoords(x + sheepSize, offsetY + sheepSize, platformWidth, platformHeight);
+
+      const allCornersInside =
+        isPointInGrassContour(topLeft[0], topLeft[1]) &&
+        isPointInGrassContour(topRight[0], topRight[1]) &&
+        isPointInGrassContour(bottomLeft[0], bottomLeft[1]) &&
+        isPointInGrassContour(bottomRight[0], bottomRight[1]);
+
+      if (allCornersInside) {
+        // Use the OFFSET position for the sheep
+        x = x;
+        y = offsetY;
+        console.log('[SheepSpawner] Found valid position (all corners inside, offset applied):', {
+          x: Math.round(x),
+          y: Math.round(y),
+          topLeft,
+          bottomRight
+        });
         break;
       }
 
