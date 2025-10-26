@@ -45,7 +45,7 @@ export const getNextGridPosition = (
   // Adjust for sheep sprite centering (sheep sprite is 60x60)
   const sheepSize = 60;
   const adjustedX = x - sheepSize / 2;
-  const adjustedY = y - sheepSize / 2 - 5; // Move up 5 pixels
+  const adjustedY = y - sheepSize / 2 - 10; // Move up 10 pixels total
 
   console.log(`[SheepSpawner] Assigned grid spot ${selectedSpot.id} at (${Math.round(adjustedX)}, ${Math.round(adjustedY)})`);
 
