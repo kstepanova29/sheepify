@@ -415,7 +415,7 @@ export default function HomeScreen() {
                 style={styles.speechBubbleImage}
                 resizeMode="contain"
               />
-              <Text style={styles.speechBubbleText} numberOfLines={5}>
+              <Text style={styles.speechBubbleText} numberOfLines={7}>
                 {shleepyMessage}
               </Text>
             </View>
@@ -595,7 +595,7 @@ const styles = StyleSheet.create({
   },
   speechBubble: {
     position: 'absolute',
-    top: -250,  // Positioned above the bigger head
+    top: -280,  // Positioned above the bigger head
     alignSelf: 'center',  // Center horizontally
     width: 1400,  // WAY bigger bubble
     height: 350,  // WAY bigger height
@@ -621,7 +621,7 @@ const styles = StyleSheet.create({
     paddingVertical: 30,  // Lots of vertical padding
     lineHeight: 22,  // Better line spacing
     zIndex: 1,
-    maxWidth: 340,  // Wide but text is short (100 chars)
+    maxWidth: 390,  // Wide but text is short (100 chars)
   },
   statsCard: {
     marginHorizontal: 30,
