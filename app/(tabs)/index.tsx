@@ -445,24 +445,32 @@ export default function HomeScreen() {
 
         {/* Stats Card */}
         <View style={styles.statsCard}>
-          <View style={styles.statRow}>
-            <Text style={styles.statLabel}>Sleep Streak</Text>
-            <Text style={styles.statValue}>
-              {user?.streak || 0}
-            </Text>
-          </View>
-          <View style={styles.statRow}>
-            <Text style={styles.statLabel}>Wool Blocks</Text>
-            <Text style={styles.statValue}>{user?.woolBlocks || 0}</Text>
-          </View>
-          <View style={styles.statRow}>
-            <Text style={styles.statLabel}>Shepherd Tokens</Text>
-            <Text style={styles.statValue}>{user?.shepherdTokens || 0}</Text>
-          </View>
-          <View style={styles.statRow}>
-            <Text style={styles.statLabel}>Sheep</Text>
-            <Text style={styles.statValue}>{aliveSheep}</Text>
-          </View>
+          <ImageBackground
+            source={require('@/table.png')}
+            style={styles.statsCardImage}
+            resizeMode="contain"
+          >
+            <View style={styles.statsCardContent}>
+              <View style={styles.statRow}>
+                <Text style={styles.statLabel}>Sleep Streak</Text>
+                <Text style={styles.statValue}>
+                  {user?.streak || 0}
+                </Text>
+              </View>
+              <View style={styles.statRow}>
+                <Text style={styles.statLabel}>Wool Blocks</Text>
+                <Text style={styles.statValue}>{user?.woolBlocks || 0}</Text>
+              </View>
+              <View style={styles.statRow}>
+                <Text style={styles.statLabel}>Shepherd Tokens</Text>
+                <Text style={styles.statValue}>{user?.shepherdTokens || 0}</Text>
+              </View>
+              <View style={styles.statRow}>
+                <Text style={styles.statLabel}>Sheep</Text>
+                <Text style={styles.statValue}>{aliveSheep}</Text>
+              </View>
+            </View>
+          </ImageBackground>
         </View>
       </LinearGradient>
     );
@@ -650,13 +658,18 @@ const styles = StyleSheet.create({
     maxWidth: 370,  // Wide but text is short (100 chars)
   },
   statsCard: {
-    marginHorizontal: 30,
-    marginTop: -40,  // Increased to add more space
-    padding: 20,
-    backgroundColor: '#16213e',
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: '#0f3460',
+    marginHorizontal: 20,
+    marginTop: -40,
+  },
+  statsCardImage: {
+    width: '100%',
+    height: 280,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  statsCardContent: {
+    paddingHorizontal: 50,
+    paddingVertical: 30,
   },
   statRow: {
     flexDirection: 'row',
@@ -665,13 +678,13 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 10,
-    color: '#a8a8d1',
+    color: '#5b3a70',
     fontFamily: 'PressStart2P_400Regular',
   },
   statValue: {
     fontSize: 12,
     fontWeight: '400',
-    color: '#fff',
+    color: '#5b3a70',
     fontFamily: 'PressStart2P_400Regular',
   },
   toggleDayNightButton: {
@@ -742,12 +755,13 @@ const styles = StyleSheet.create({
   },
   logSleepButtonImage: {
     width: '100%',
-    height: 100,
+    height: 200,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingTop: 10,  // Shift text down by 30px
   },
   logSleepText: {
-    fontSize: 14,
+    fontSize: 19,
     fontWeight: '400',
     color: '#5b3a70',
     fontFamily: 'PressStart2P_400Regular',
