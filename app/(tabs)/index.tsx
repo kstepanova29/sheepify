@@ -219,6 +219,7 @@ export default function HomeScreen() {
     if (isLoadingMessage || !user) return;
 
     setIsLoadingMessage(true);
+    setShleepyMessage('...');  // Show loading indicator
 
     try {
       let message = '';
