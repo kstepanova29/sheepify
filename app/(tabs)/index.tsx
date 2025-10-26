@@ -136,6 +136,9 @@ export default function HomeScreen() {
     if (!user) {
       initializeUser('Shepherd');
     }
+    // Clear all sheep on reload to start fresh
+    deleteAllSheep();
+    sheepPositionsRef.current.clear();
   }, []);
 
   // Windmill animation - toggle frames twice per second (every 500ms)
