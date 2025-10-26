@@ -223,9 +223,9 @@ export default function HomeScreen() {
     try {
       let message = '';
 
-      // Check if this is the first message of the day
+      // Check if this is the first message of the day (after waking up)
       if (isNewDay()) {
-        // Generate dream message
+        // Generate dream message - this is shown as the first message after waking
         const lastSleep = sleepHistory.length > 0 ? sleepHistory[0] : null;
         const sleepQuality = lastSleep ? lastSleep.quality : 'good';
         message = await claudeService.generateDream(sleepQuality);
@@ -396,11 +396,6 @@ export default function HomeScreen() {
 
     return (
       <View style={[styles.screen, { backgroundColor: isNightMode ? '#00142f' : '#b9d6fe' }]}>
-        {/* Dynamic Header Text */}
-        <View style={styles.messageHeader}>
-          <Text style={styles.messageText}>{getStreakMessage()}</Text>
-        </View>
-
         {/* Large Shleepy Character - Now Clickable */}
         <View style={styles.shleepyContainer}>
           <TouchableOpacity
@@ -419,9 +414,9 @@ export default function HomeScreen() {
           {shleepyMessage && (
             <View style={styles.speechBubble}>
               <Image
-                source={require('@/text box.png')}
+                source={require('@/speech-bubble.png')}
                 style={styles.speechBubbleImage}
-                resizeMode="stretch"
+                resizeMode="contain"
               />
               <Text style={styles.speechBubbleText} numberOfLines={3}>
                 {shleepyMessage}
@@ -588,25 +583,8 @@ const styles = StyleSheet.create({
   },
 
   // Stats Screen Styles
-  messageHeader: {
-    marginTop: 80,
-    marginHorizontal: 30,
-    padding: 20,
-    backgroundColor: '#16213e',
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: '#0f3460',
-  },
-  messageText: {
-    fontSize: 12,
-    fontWeight: '400',
-    color: '#fff',
-    textAlign: 'center',
-    fontFamily: 'PressStart2P_400Regular',
-    lineHeight: 20,
-  },
   shleepyContainer: {
-    marginTop: 40,
+    marginTop: 100,  // Moved up since we removed header
     alignItems: 'center',
     position: 'relative',
   },
@@ -616,10 +594,9 @@ const styles = StyleSheet.create({
   },
   speechBubble: {
     position: 'absolute',
-    top: -80,  // Positioned above Shleepy's head
-    left: -150,
-    right: -150,
-    height: 100,
+    top: -100,  // Positioned above Shleepy's head
+    width: 300,
+    height: 120,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -629,14 +606,15 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   speechBubbleText: {
-    fontSize: 9,
+    fontSize: 8,
     fontFamily: 'PressStart2P_400Regular',
     color: '#2c2c2c',
     textAlign: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    lineHeight: 14,
+    paddingHorizontal: 25,
+    paddingVertical: 15,
+    lineHeight: 12,
     zIndex: 1,
+    maxWidth: 240,  // Ensure text stays within white portion
   },
   statsCard: {
     marginHorizontal: 30,
