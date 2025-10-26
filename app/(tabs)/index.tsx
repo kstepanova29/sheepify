@@ -616,7 +616,7 @@ const styles = StyleSheet.create({
     paddingVertical: 30,  // Lots of vertical padding
     lineHeight: 22,  // Better line spacing
     zIndex: 1,
-    maxWidth: 540,  // Wide but text is short (100 chars)
+    maxWidth: 340,  // Wide but text is short (100 chars)
   },
   statsCard: {
     marginHorizontal: 30,

@@ -21,11 +21,14 @@ Personality:
 - Enthusiastic about good sleep habits
 
 Rules:
-- CRITICAL: Keep responses under 100 characters MAXIMUM (including spaces and emojis)
+- CRITICAL: Your ENTIRE response must be under 100 characters MAXIMUM (including spaces and emojis)
+- You MUST finish your complete thought within 100 characters - do NOT write incomplete sentences
+- Craft short, punchy, COMPLETE messages that end naturally within the limit
+- Plan your message to fit the limit - if it won't fit, rephrase it shorter
 - Always include at least one sheep pun
 - Use emojis sparingly (🐑 😴 💤 🌙 ✨)
 - Be family-friendly
-- Be very concise and punchy`;
+- Examples of good length: "Ewe nailed it! 8 hours of sleep! 🐑✨" or "Baaaad sleep ruins wool production! 😴"`;
 
 export const claudeService = {
   async sendMessage(userMessage: string): Promise<string> {
@@ -37,14 +40,14 @@ export const claudeService = {
         messages: [
           {
             role: 'user',
-            content: userMessage + '\n\nRemember: Maximum 100 characters!',
+            content: userMessage + '\n\nIMPORTANT: Your response must be a complete thought that finishes within 100 characters. Do not write incomplete sentences.',
           },
         ],
       });
 
       if (response.content[0].type === 'text') {
         let message = response.content[0].text;
-        // Enforce 100 character limit
+        // Enforce 100 character limit as fallback (should rarely trigger now)
         if (message.length > 100) {
           message = message.substring(0, 97) + '...';
         }
