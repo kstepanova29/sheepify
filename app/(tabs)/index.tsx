@@ -663,21 +663,22 @@ const styles = StyleSheet.create({
   },
   statsCardImage: {
     width: '100%',
-    height: 280,
+    height: 450,  // Increased from 280
     justifyContent: 'center',
     alignItems: 'center',
+    transform: [{ translateY: -150 }],
   },
   statsCardContent: {
     paddingHorizontal: 50,
-    paddingVertical: 30,
+    paddingVertical: 50,
   },
   statRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 15,
+    marginBottom: 7,
   },
   statLabel: {
-    fontSize: 10,
+    fontSize: 12,
     color: '#5b3a70',
     fontFamily: 'PressStart2P_400Regular',
   },
