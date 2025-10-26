@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { Sheep, SleepSession, User } from '../types/game';
+import { resetAllGridSpots, freeGridSpot } from '../utils/sheepSpawner';
 
 interface GameState {
   user: User | null;
@@ -155,6 +156,9 @@ export const useGameStore = create<GameState>()(
       },
 
       deleteAllSheep: () => {
+        // Reset all grid spots when deleting all sheep
+        resetAllGridSpots();
+
         set((state) => ({
           user: state.user
             ? {

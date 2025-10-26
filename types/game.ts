@@ -5,6 +5,7 @@ export interface Sheep {
   woolProduction: number; // wool blocks per day
   outfit?: string;
   isAlive: boolean;
+  gridSpotId?: number; // Grid position (0-28) for fixed spawning
 }
 
 export interface SleepSession {

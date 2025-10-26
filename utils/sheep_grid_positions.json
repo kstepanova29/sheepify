@@ -1,0 +1,38 @@
+{
+  "totalSpots": 29,
+  "imageDimensions": {
+    "width": 2485,
+    "height": 2639
+  },
+  "spots": [
+    {"id": 0, "x": 1219, "y": 1051, "occupied": false},
+    {"id": 1, "x": 1072, "y": 1124, "occupied": false},
+    {"id": 2, "x": 1300, "y": 1210, "occupied": false},
+    {"id": 3, "x": 882, "y": 1219, "occupied": false},
+    {"id": 4, "x": 1038, "y": 1294, "occupied": false},
+    {"id": 5, "x": 678, "y": 1321, "occupied": false},
+    {"id": 6, "x": 834, "y": 1396, "occupied": false},
+    {"id": 7, "x": 1223, "y": 1386, "occupied": false},
+    {"id": 8, "x": 484, "y": 1418, "occupied": false},
+    {"id": 9, "x": 639, "y": 1494, "occupied": false},
+    {"id": 10, "x": 1016, "y": 1486, "occupied": false},
+    {"id": 11, "x": 1418, "y": 1482, "occupied": false},
+    {"id": 12, "x": 313, "y": 1504, "occupied": false},
+    {"id": 13, "x": 2129, "y": 1506, "occupied": false},
+    {"id": 14, "x": 466, "y": 1581, "occupied": false},
+    {"id": 15, "x": 818, "y": 1582, "occupied": false},
+    {"id": 16, "x": 1210, "y": 1582, "occupied": false},
+    {"id": 17, "x": 1606, "y": 1574, "occupied": false},
+    {"id": 18, "x": 1981, "y": 1577, "occupied": false},
+    {"id": 19, "x": 1793, "y": 1669, "occupied": false},
+    {"id": 20, "x": 640, "y": 1669, "occupied": false},
+    {"id": 21, "x": 1012, "y": 1678, "occupied": false},
+    {"id": 22, "x": 1397, "y": 1674, "occupied": false},
+    {"id": 23, "x": 831, "y": 1766, "occupied": false},
+    {"id": 24, "x": 1198, "y": 1769, "occupied": false},
+    {"id": 25, "x": 1585, "y": 1769, "occupied": false},
+    {"id": 26, "x": 1387, "y": 1864, "occupied": false},
+    {"id": 27, "x": 1013, "y": 1858, "occupied": false},
+    {"id": 28, "x": 1201, "y": 1955, "occupied": false}
+  ]
+}

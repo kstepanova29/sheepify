@@ -10,7 +10,12 @@ import {
   View,
 } from 'react-native';
 import { useGameStore } from '../../store/gameStore';
-import { getRandomPositionInDiamond } from '../../utils/sheepSpawner';
+import {
+  getRandomPositionInDiamond,
+  hasAvailableSpots,
+  getOccupiedCount,
+  getTotalSpots
+} from '../../utils/sheepSpawner';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -25,18 +30,30 @@ export default function HomeScreen() {
   const handleSpawnSheep = async () => {
     if (!user) return;
 
+    // Check if there are available grid spots
+    if (!hasAvailableSpots()) {
+      console.log(`[HomeScreen] Grid is full! ${getOccupiedCount()}/${getTotalSpots()} spots occupied`);
+      return;
+    }
+
     const platformWidth = SCREEN_WIDTH * 0.84;
     const platformHeight = SCREEN_HEIGHT * 0.48;
 
-    // Get random position within the diamond grass block (now async!)
+    // Get random position from grid system
     const position = await getRandomPositionInDiamond(platformWidth, platformHeight);
 
-    // Add new sheep at random position
+    if (!position) {
+      console.log('[HomeScreen] No position available - grid is full');
+      return;
+    }
+
+    // Add new sheep with grid spot ID
     addSheep({
       name: `Sheep #${user.totalSheepEarned + 1}`,
       earnedDate: new Date(),
       woolProduction: 1,
       isAlive: true,
+      gridSpotId: position.gridSpotId,
     });
   };
 
@@ -63,19 +80,38 @@ export default function HomeScreen() {
     return () => clearInterval(interval);
   }, []);
 
-  // Load positions for sheep that don't have them yet
+  // Load positions for sheep based on their grid spots
   useEffect(() => {
-    const loadMissingPositions = async () => {
+    const loadSheepPositions = async () => {
       if (!user) return;
 
       const aliveSheep = user.sheep.filter(s => s.isAlive);
       const platformWidth = SCREEN_WIDTH * 0.84;
       const platformHeight = SCREEN_HEIGHT * 0.48;
 
+      // Load grid positions from JSON
+      const gridData = require('../../utils/sheep_grid_positions.json');
+      const imageWidth = gridData.imageDimensions.width;
+      const imageHeight = gridData.imageDimensions.height;
+
       for (const sheep of aliveSheep) {
         if (!sheepPositionsRef.current.has(sheep.id)) {
-          const position = await getRandomPositionInDiamond(platformWidth, platformHeight);
-          sheepPositionsRef.current.set(sheep.id, position);
+          // If sheep has a grid spot, use that position
+          if (sheep.gridSpotId !== undefined) {
+            const spot = gridData.spots.find((s: any) => s.id === sheep.gridSpotId);
+            if (spot) {
+              // Convert from image coordinates to platform coordinates
+              const x = (spot.x / imageWidth) * platformWidth - 30; // Center sheep (60/2)
+              const y = (spot.y / imageHeight) * platformHeight - 30;
+              sheepPositionsRef.current.set(sheep.id, { x, y });
+            }
+          } else {
+            // Fallback for sheep without grid spots (legacy)
+            const position = await getRandomPositionInDiamond(platformWidth, platformHeight);
+            if (position) {
+              sheepPositionsRef.current.set(sheep.id, position);
+            }
+          }
         }
       }
 
@@ -83,7 +119,7 @@ export default function HomeScreen() {
       forceUpdate(prev => prev + 1);
     };
 
-    loadMissingPositions();
+    loadSheepPositions();
   }, [user?.sheep.length]); // Re-run when sheep count changes
 
   const getStreakMessage = () => {
@@ -166,10 +202,13 @@ export default function HomeScreen() {
 
         {/* Spawn Sheep Button - Testing */}
         <TouchableOpacity
-          style={styles.spawnSheepButton}
+          style={[styles.spawnSheepButton, !hasAvailableSpots() && styles.spawnButtonDisabled]}
           onPress={handleSpawnSheep}
+          disabled={!hasAvailableSpots()}
         >
-          <Text style={styles.spawnSheepText}>🐑 Spawn Sheep</Text>
+          <Text style={styles.spawnSheepText}>
+            🐑 Spawn Sheep ({getOccupiedCount()}/{getTotalSpots()})
+          </Text>
         </TouchableOpacity>
 
         {/* Log Sleep Button - Bottom */}
@@ -419,6 +458,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: '#fff',
+  },
+  spawnButtonDisabled: {
+    backgroundColor: '#999',
+    opacity: 0.6,
   },
   logSleepButton: {
     position: 'absolute',

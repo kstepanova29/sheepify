@@ -1,138 +1,112 @@
 /**
- * Utility functions for spawning sheep at random positions within the GREEN grass contour.
- * Uses the same HSV thresholding and contour detection as checkcoloure.py
+ * Grid-based sheep spawning system
+ * Each sheep occupies exactly one grid slot from predefined positions
  */
 
-// We'll store the contour once it's loaded
-let grassContour: [number, number][] | null = null;
-const contourPromise = new Promise<[number, number][]>((resolve) => {
-  // Load the contour data from the JSON file we extracted
-  try {
-    const contourData = require('./grass_contour.json');
-    grassContour = contourData;
-    console.log('[SheepSpawner] Grass contour loaded successfully:', contourData.length, 'points');
-    resolve(contourData);
-  } catch (e) {
-    console.error('[SheepSpawner] Failed to load grass contour:', e);
-    resolve([]);
-  }
-});
+// Load the fixed grid positions
+const gridData = require('./sheep_grid_positions.json');
+
+// Track which spots are currently occupied (by spot ID)
+const occupiedSpots = new Set<number>();
 
 /**
- * Check if a point is inside the grass contour using ray casting algorithm
- * This is equivalent to cv.pointPolygonTest() in OpenCV
+ * Get the next available grid position for spawning a sheep
+ * Returns null if all spots are occupied
  */
-const isPointInGrassContour = (x: number, y: number): boolean => {
-  if (!grassContour || grassContour.length === 0) return false;
-
-  const contour = grassContour;
-  let inside = false;
-
-  for (let i = 0, j = contour.length - 1; i < contour.length; j = i++) {
-    const xi = contour[i][0];
-    const yi = contour[i][1];
-    const xj = contour[j][0];
-    const yj = contour[j][1];
-
-    const intersect = yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi;
-    if (intersect) inside = !inside;
-  }
-
-  return inside;
-};
-
-/**
- * Convert platform coordinates to image pixel coordinates
- */
-const toImageCoords = (
-  x: number,
-  y: number,
+export const getNextGridPosition = (
   platformWidth: number,
   platformHeight: number
-): [number, number] => {
-  const imageWidth = 2485;
-  const imageHeight = 1893;
+): { x: number; y: number; gridSpotId: number } | null => {
+  // Find all unoccupied spots
+  const availableSpots = gridData.spots.filter(
+    (spot: any) => !occupiedSpots.has(spot.id)
+  );
 
-  const imageX = Math.round((x / platformWidth) * imageWidth);
-  const imageY = Math.round((y / platformHeight) * imageHeight);
+  // If no spots available, return null
+  if (availableSpots.length === 0) {
+    console.log('[SheepSpawner] All grid spots are occupied!');
+    return null;
+  }
 
-  return [imageX, imageY];
+  // Randomly select an available spot
+  const randomIndex = Math.floor(Math.random() * availableSpots.length);
+  const selectedSpot = availableSpots[randomIndex];
+
+  // Mark this spot as occupied
+  occupiedSpots.add(selectedSpot.id);
+
+  // Convert from image coordinates to platform coordinates
+  const imageWidth = gridData.imageDimensions.width;
+  const imageHeight = gridData.imageDimensions.height;
+
+  const x = (selectedSpot.x / imageWidth) * platformWidth;
+  const y = (selectedSpot.y / imageHeight) * platformHeight;
+
+  // Adjust for sheep sprite centering (sheep sprite is 60x60)
+  const sheepSize = 60;
+  const adjustedX = x - sheepSize / 2;
+  const adjustedY = y - sheepSize / 2;
+
+  console.log(`[SheepSpawner] Assigned grid spot ${selectedSpot.id} at (${Math.round(adjustedX)}, ${Math.round(adjustedY)})`);
+
+  return {
+    x: adjustedX,
+    y: adjustedY,
+    gridSpotId: selectedSpot.id
+  };
 };
 
 /**
- * Generate a random position within the grass contour
- * The sheep bottom will be at (x, y + sheepSize) to ensure bottom is inside contour
- *
- * IMPORTANT: This is an async function that waits for the contour to load
+ * Free up a grid spot when a sheep is removed
  */
-export const getRandomPositionInDiamond = async (
-  platformWidth: number,
-  platformHeight: number,
-  sheepSize: number = 60
-): Promise<{ x: number; y: number }> => {
-  // Wait for contour to load - this fixes the race condition!
-  await contourPromise;
-
-  let x = 0, y = 0;
-  let attempts = 0;
-  const maxAttempts = 100;
-
-  // Rejection sampling: keep trying until sheep bottom is inside grass contour
-  if (!grassContour || grassContour.length === 0) {
-    console.error('[SheepSpawner] Contour not available, using fallback positioning');
-    // Fallback only if contour truly failed to load
-    x = Math.random() * platformWidth;
-    y = Math.random() * platformHeight;
-  } else {
-    do {
-      x = Math.random() * platformWidth;
-      y = Math.random() * platformHeight;
-
-      // Move the sheep UP by its height + extra offset so it sits on top of the grass
-      const offsetY = y - sheepSize - 50; // Reduced offset to 50px (half of previous 100px)
-
-      // Check if ALL FOUR CORNERS of the OFFSET sheep are inside the contour
-      // This ensures the entire sheep sprite is within the grass area
-      const topLeft = toImageCoords(x, offsetY, platformWidth, platformHeight);
-      const topRight = toImageCoords(x + sheepSize, offsetY, platformWidth, platformHeight);
-      const bottomLeft = toImageCoords(x, offsetY + sheepSize, platformWidth, platformHeight);
-      const bottomRight = toImageCoords(x + sheepSize, offsetY + sheepSize, platformWidth, platformHeight);
-
-      const allCornersInside =
-        isPointInGrassContour(topLeft[0], topLeft[1]) &&
-        isPointInGrassContour(topRight[0], topRight[1]) &&
-        isPointInGrassContour(bottomLeft[0], bottomLeft[1]) &&
-        isPointInGrassContour(bottomRight[0], bottomRight[1]);
-
-      if (allCornersInside) {
-        // Use the OFFSET position for the sheep
-        x = x;
-        y = offsetY;
-        console.log('[SheepSpawner] Found valid position (all corners inside, offset applied):', {
-          x: Math.round(x),
-          y: Math.round(y),
-          topLeft,
-          bottomRight
-        });
-        break;
-      }
-
-      attempts++;
-    } while (attempts < maxAttempts);
-
-    if (attempts >= maxAttempts) {
-      console.warn('[SheepSpawner] Max attempts reached, using last position');
-    }
+export const freeGridSpot = (gridSpotId: number): void => {
+  if (occupiedSpots.has(gridSpotId)) {
+    occupiedSpots.delete(gridSpotId);
+    console.log(`[SheepSpawner] Freed grid spot ${gridSpotId}`);
   }
-
-  // Clamp to ensure sheep doesn't go out of bounds
-  x = Math.max(sheepSize / 2, Math.min(platformWidth - sheepSize / 2, x));
-  y = Math.max(sheepSize / 2, Math.min(platformHeight - sheepSize / 2, y));
-
-  return { x, y };
 };
 
-// Load contour on module load
-contourPromise.then((contour) => {
-  grassContour = contour;
-});
+/**
+ * Reset all grid spots (clear all sheep)
+ */
+export const resetAllGridSpots = (): void => {
+  occupiedSpots.clear();
+  console.log('[SheepSpawner] All grid spots have been reset');
+};
+
+/**
+ * Check if there are any available spots
+ */
+export const hasAvailableSpots = (): boolean => {
+  return occupiedSpots.size < gridData.totalSpots;
+};
+
+/**
+ * Get the number of occupied spots
+ */
+export const getOccupiedCount = (): number => {
+  return occupiedSpots.size;
+};
+
+/**
+ * Get the total number of spots
+ */
+export const getTotalSpots = (): number => {
+  return gridData.totalSpots;
+};
+
+// For backward compatibility - redirect old function to new one
+export const getRandomPositionInDiamond = async (
+  platformWidth: number,
+  platformHeight: number
+): Promise<{ x: number; y: number; gridSpotId?: number } | null> => {
+  const position = getNextGridPosition(platformWidth, platformHeight);
+  if (!position) {
+    // Return center of platform as fallback when grid is full
+    return {
+      x: platformWidth / 2,
+      y: platformHeight / 2
+    };
+  }
+  return position;
+};
