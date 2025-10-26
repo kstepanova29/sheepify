@@ -257,10 +257,7 @@ export default function HomeScreen() {
 
       setShleepyMessage(message);
 
-      // Auto-hide message after 5 seconds
-      setTimeout(() => {
-        setShleepyMessage(null);
-      }, 5000);
+      // Message stays visible until replaced by new message
     } catch (error) {
       console.error('Error generating message:', error);
       setShleepyMessage("Baaah! My wool-gathering thoughts are tangled! 🐑");
