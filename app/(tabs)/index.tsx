@@ -455,12 +455,14 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <ScrollView
+        horizontal
         pagingEnabled
-        showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
         snapToAlignment="center"
         decelerationRate="fast"
         bounces={false}
         scrollEventThrottle={16}
+        contentContainerStyle={styles.scrollContent}
       >
         <View style={styles.pageContainer}>
           <FarmScreen />
@@ -477,6 +479,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#1a1a2e',
+  },
+  scrollContent: {
+    flexDirection: 'row',  // Lay out pages horizontally
   },
   pageContainer: {
     width: SCREEN_WIDTH,
