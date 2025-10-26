@@ -349,9 +349,10 @@ export default function HomeScreen() {
         <TouchableOpacity
           style={styles.toggleDayNightButton}
           onPress={toggleDayNight}
+          delayPressIn={0}
         >
           <Text style={styles.toggleDayNightText}>
-            {isNightMode ? 'Switch to Day' : 'Switch to Night'}
+            {isNightMode ? 'Dy' : 'Nt'}
           </Text>
         </TouchableOpacity>
 
@@ -359,8 +360,9 @@ export default function HomeScreen() {
         <TouchableOpacity
           style={styles.deleteAllSheepButton}
           onPress={handleDeleteAllSheep}
+          delayPressIn={0}
         >
-          <Text style={styles.deleteAllSheepText}>Delete All</Text>
+          <Text style={styles.deleteAllSheepText}>Clr</Text>
         </TouchableOpacity>
 
         {/* Spawn Sheep Button - Testing */}
@@ -368,9 +370,10 @@ export default function HomeScreen() {
           style={[styles.spawnSheepButton, !hasAvailableSpots() && styles.spawnButtonDisabled]}
           onPress={handleSpawnSheep}
           disabled={!hasAvailableSpots()}
+          delayPressIn={0}
         >
           <Text style={styles.spawnSheepText}>
-            Spawn Sheep ({getOccupiedCount()}/{getTotalSpots()})
+            Spn
           </Text>
         </TouchableOpacity>
 
@@ -665,12 +668,13 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 50,
     right: 10,
-    padding: 8,
+    width: 40,
+    height: 40,
     backgroundColor: '#9b59b6',
-    borderRadius: 8,
+    borderRadius: 20,
     alignItems: 'center',
+    justifyContent: 'center',
     zIndex: 10,
-    minWidth: 120,
   },
   toggleDayNightText: {
     fontSize: 8,
@@ -680,14 +684,15 @@ const styles = StyleSheet.create({
   },
   deleteAllSheepButton: {
     position: 'absolute',
-    top: 95,
+    top: 100,
     right: 10,
-    padding: 8,
+    width: 40,
+    height: 40,
     backgroundColor: '#ff6b6b',
-    borderRadius: 8,
+    borderRadius: 20,
     alignItems: 'center',
+    justifyContent: 'center',
     zIndex: 10,
-    minWidth: 120,
   },
   deleteAllSheepText: {
     fontSize: 8,
@@ -697,14 +702,15 @@ const styles = StyleSheet.create({
   },
   spawnSheepButton: {
     position: 'absolute',
-    top: 140,
+    top: 150,
     right: 10,
-    padding: 8,
+    width: 40,
+    height: 40,
     backgroundColor: '#4a90e2',
-    borderRadius: 8,
+    borderRadius: 20,
     alignItems: 'center',
+    justifyContent: 'center',
     zIndex: 10,
-    minWidth: 120,
   },
   spawnSheepText: {
     fontSize: 8,
