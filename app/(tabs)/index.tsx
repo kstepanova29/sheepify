@@ -584,7 +584,7 @@ const styles = StyleSheet.create({
 
   // Stats Screen Styles
   shleepyContainer: {
-    marginTop: 100,  // Moved up since we removed header
+    marginTop: 250,  // Moved down significantly
     alignItems: 'center',
     position: 'relative',
   },
@@ -594,7 +594,7 @@ const styles = StyleSheet.create({
   },
   speechBubble: {
     position: 'absolute',
-    top: -240,  // Positioned higher due to larger size
+    top: -220,  // Positioned above Shleepy's head
     left: -190,  // Center the wider bubble
     width: 660,  // 2x larger but fits on screen
     height: 260,  // 2x larger height
@@ -619,7 +619,7 @@ const styles = StyleSheet.create({
   },
   statsCard: {
     marginHorizontal: 30,
-    marginTop: 30,
+    marginTop: 50,  // Increased to add more space
     padding: 20,
     backgroundColor: '#16213e',
     borderRadius: 16,
