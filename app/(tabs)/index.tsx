@@ -37,8 +37,7 @@ export default function HomeScreen() {
   // Shleepy message state
   const [shleepyMessage, setShleepyMessage] = useState<string | null>(null);
   const [isLoadingMessage, setIsLoadingMessage] = useState(false);
-  const [firstMessageOfDayShown, setFirstMessageOfDayShown] = useState(false);
-  const [lastMessageDate, setLastMessageDate] = useState<Date | null>(null);
+  const [lastSleepSessionShown, setLastSleepSessionShown] = useState<string | null>(null);
 
   // Load retro pixel font
   const [fontsLoaded] = useFonts({
@@ -206,11 +205,11 @@ export default function HomeScreen() {
     }
   };
 
-  // Check if today is a new day
-  const isNewDay = () => {
-    if (!lastMessageDate) return true;
-    const today = new Date();
-    return today.toDateString() !== lastMessageDate.toDateString();
+  // Check if there's a new sleep session we haven't shown a dream for
+  const hasNewSleepSession = () => {
+    if (!sleepHistory || sleepHistory.length === 0) return false;
+    const latestSleep = sleepHistory[0];
+    return latestSleep.id !== lastSleepSessionShown;
   };
 
   // Handle Shleepy click to generate messages
@@ -223,15 +222,14 @@ export default function HomeScreen() {
     try {
       let message = '';
 
-      // Check if this is the first message of the day (after waking up)
-      if (isNewDay()) {
+      // Check if this is the first message after waking up from a new sleep session
+      if (hasNewSleepSession()) {
         // Generate dream message - this is shown as the first message after waking
-        const lastSleep = sleepHistory.length > 0 ? sleepHistory[0] : null;
-        const sleepQuality = lastSleep ? lastSleep.quality : 'good';
+        const lastSleep = sleepHistory[0];
+        const sleepQuality = lastSleep.quality;
         message = await claudeService.generateDream(sleepQuality);
 
-        setFirstMessageOfDayShown(true);
-        setLastMessageDate(new Date());
+        setLastSleepSessionShown(lastSleep.id);
       } else {
         // Generate message based on sleep quality
         const lastSleep = sleepHistory.length > 0 ? sleepHistory[0] : null;
@@ -618,7 +616,7 @@ const styles = StyleSheet.create({
 
   },
   speechBubbleText: {
-    fontSize: 12,  // Bigger text for bigger bubble
+    fontSize: 13,  // Bigger text for bigger bubble
     fontFamily: 'PressStart2P_400Regular',
     color: '#2c2c2c',
     textAlign: 'center',
@@ -626,7 +624,7 @@ const styles = StyleSheet.create({
     paddingVertical: 30,  // Lots of vertical padding
     lineHeight: 22,  // Better line spacing
     zIndex: 1,
-    maxWidth: 390,  // Wide but text is short (100 chars)
+    maxWidth: 370,  // Wide but text is short (100 chars)
   },
   statsCard: {
     marginHorizontal: 30,

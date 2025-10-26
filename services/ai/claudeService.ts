@@ -86,10 +86,11 @@ export const claudeService = {
   },
 
   async generateDream(sleepQuality: 'poor' | 'good' | 'perfect'): Promise<string> {
-    const prompt = `Generate a surreal, dreamlike snippet (1-2 sentences).
-    Include sheep, wool, or sleep themes.
-    Make it absurd and whimsical.
-    Sleep quality was ${sleepQuality}.`;
+    const prompt = `Tell a funny micro-story about what YOU (the user) dreamed last night in second person.
+    Make it silly and absurd with sheep doing ridiculous things.
+    Start with "You dreamed..."
+    Sleep quality was ${sleepQuality} - if poor, make dream chaotic; if perfect, make it peaceful but still silly.
+    Keep it lighthearted and fun, not poetic or serious!`;
 
     return this.sendMessage(prompt);
   },
