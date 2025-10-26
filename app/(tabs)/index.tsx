@@ -20,6 +20,7 @@ export default function HomeScreen() {
   const flatListRef = useRef<FlatList>(null);
   const sheepPositionsRef = useRef<Map<string, { x: number; y: number }>>(new Map());
   const [, forceUpdate] = useState(0); // Force re-render when positions are loaded
+  const [windmillFrame, setWindmillFrame] = useState(0); // Windmill animation frame (0 or 1)
 
   const handleSpawnSheep = async () => {
     if (!user) return;
@@ -51,6 +52,15 @@ export default function HomeScreen() {
     if (!user) {
       initializeUser('Shepherd');
     }
+  }, []);
+
+  // Windmill animation - toggle frames twice per second (every 500ms)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setWindmillFrame(prev => prev === 0 ? 1 : 0);
+    }, 500);
+
+    return () => clearInterval(interval);
   }, []);
 
   // Load positions for sheep that don't have them yet
@@ -113,9 +123,11 @@ export default function HomeScreen() {
           <Text style={styles.sun}>☀️</Text>
         </View>
 
-        {/* 3D Farm Platform */}
+        {/* 3D Farm Platform with Animated Windmill */}
         <Image
-          source={require('@/blockofdirt.png')}
+          source={windmillFrame === 0
+            ? require('@/farm-windmill-1.png')
+            : require('@/farm-windmill-2.png')}
           style={styles.farmPlatform}
           resizeMode="contain"
         />
