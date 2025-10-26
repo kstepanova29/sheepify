@@ -389,8 +389,18 @@ export default function HomeScreen() {
   const StatsScreen = () => {
     const aliveSheep = user?.sheep.filter(s => s.isAlive).length || 0;
 
+    const containerProps = isNightMode
+      ? {
+          colors: ['#0f3785', '#211456', '#00142f'] as const,
+          style: styles.screen,
+        }
+      : {
+          colors: ['#97f0ff', '#e9ebee', '#b8d5fe'] as const,
+          style: styles.screen,
+        };
+
     return (
-      <View style={[styles.screen, { backgroundColor: isNightMode ? '#00142f' : '#b9d6fe' }]}>
+      <LinearGradient {...containerProps}>
         {/* Large Shleepy Character - Now Clickable */}
         <View style={styles.shleepyContainer}>
           <TouchableOpacity
@@ -441,7 +451,7 @@ export default function HomeScreen() {
             <Text style={styles.statValue}>{aliveSheep}</Text>
           </View>
         </View>
-      </View>
+      </LinearGradient>
     );
   };
 
