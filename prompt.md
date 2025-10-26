@@ -1,5 +1,6 @@
-have a look below
-To-do:
-1. Delete the existing box with (Get back on track! 2 good nights needed). 
-2. the speech should be in speech-bubble.png not text box.png (you misunderstood my previous prompt) and tyhe text should be in the white portion of speech-bubble and should not go into the purple. 
-3. double check if the first line after waking up is a dream output
+lets merge screen-2 into production ui branch. Note the following
+1. We are going to have horizontal scrolling from now on
+2. Screen 2 didn't change anything about screen 1 so nothing on screen 1 should be changed
+3. Screen 2 branch implementation of screen2 should replace every aspect of the current production ui's screen 2
+
+if i ask to revert because something broke come back to this point in time

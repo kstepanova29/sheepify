@@ -628,7 +628,7 @@ const styles = StyleSheet.create({
   },
   statsCard: {
     marginHorizontal: 30,
-    marginTop: 50,  // Increased to add more space
+    marginTop: -40,  // Increased to add more space
     padding: 20,
     backgroundColor: '#16213e',
     borderRadius: 16,
