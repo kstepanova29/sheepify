@@ -1,5 +1,8 @@
 have a look below
 To-do:
-1. Change the sheep on screen 2 to shleepy.png. This is going to be our mascot
-2. When I scroll down to the second page i can still see a bit of the log sleep. without changing the first page at all make sure I cant see the log sleep when i scroll to page 2
-3. API key has been configured in .env file for Shleepy implementation
+1. Make the head bigger
+2. I want the LLM to be implemented in the following manner:
+- a new message is generated every time the head is pressed
+- the first message of the day will be a "dream message" which you should be aware the implementation and idea b ehind
+- subsequent message will be a randomly generated message. good sleep will lead to a compliment or a pickup line, both utilising sheep puns and bad sleep will lead to a roast with a sheep pun
+- the message should not be longer than 3 lines in the text box.

@@ -18,12 +18,14 @@ import {
   getOccupiedCount,
   getTotalSpots
 } from '../../utils/sheepSpawner';
+import { claudeService } from '../../services/ai/claudeService';
+import { ShleepyContext } from '../../types/shleepy';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { user, initializeUser, addSheep, deleteAllSheep } = useGameStore();
+  const { user, initializeUser, addSheep, deleteAllSheep, sleepHistory } = useGameStore();
   const flatListRef = useRef<FlatList>(null);
   const sheepPositionsRef = useRef<Map<string, { x: number; y: number }>>(new Map());
   const [, forceUpdate] = useState(0); // Force re-render when positions are loaded
@@ -32,6 +34,12 @@ export default function HomeScreen() {
   const [manualOverride, setManualOverride] = useState(false);
   const [moonFrame, setMoonFrame] = useState(0);
   const [sheepFrame, setSheepFrame] = useState(0);
+
+  // Shleepy message state
+  const [shleepyMessage, setShleepyMessage] = useState<string | null>(null);
+  const [isLoadingMessage, setIsLoadingMessage] = useState(false);
+  const [firstMessageOfDayShown, setFirstMessageOfDayShown] = useState(false);
+  const [lastMessageDate, setLastMessageDate] = useState<Date | null>(null);
 
   // Load retro pixel font
   const [fontsLoaded] = useFonts({
@@ -199,6 +207,68 @@ export default function HomeScreen() {
     }
   };
 
+  // Check if today is a new day
+  const isNewDay = () => {
+    if (!lastMessageDate) return true;
+    const today = new Date();
+    return today.toDateString() !== lastMessageDate.toDateString();
+  };
+
+  // Handle Shleepy click to generate messages
+  const handleShleepyClick = async () => {
+    if (isLoadingMessage || !user) return;
+
+    setIsLoadingMessage(true);
+
+    try {
+      let message = '';
+
+      // Check if this is the first message of the day
+      if (isNewDay()) {
+        // Generate dream message
+        const lastSleep = sleepHistory.length > 0 ? sleepHistory[0] : null;
+        const sleepQuality = lastSleep ? lastSleep.quality : 'good';
+        message = await claudeService.generateDream(sleepQuality);
+
+        setFirstMessageOfDayShown(true);
+        setLastMessageDate(new Date());
+      } else {
+        // Generate message based on sleep quality
+        const lastSleep = sleepHistory.length > 0 ? sleepHistory[0] : null;
+
+        if (lastSleep) {
+          const context: ShleepyContext = {
+            sleepDuration: lastSleep.duration,
+            sleepQuality: lastSleep.quality,
+            streak: user.streak,
+            penaltyWarning: user.penalties.lambChopWarning,
+            totalSheep: user.sheep.filter(s => s.isAlive).length,
+            lastSleepDate: user.lastSleepDate,
+          };
+
+          message = await claudeService.generateSleepMessage(context);
+        } else {
+          // No sleep history yet, generate a general message
+          message = await claudeService.sendMessage(
+            "Generate a motivational message about starting a good sleep routine. Be encouraging!"
+          );
+        }
+      }
+
+      setShleepyMessage(message);
+
+      // Auto-hide message after 5 seconds
+      setTimeout(() => {
+        setShleepyMessage(null);
+      }, 5000);
+    } catch (error) {
+      console.error('Error generating message:', error);
+      setShleepyMessage("Baaah! My wool-gathering thoughts are tangled! 🐑");
+    } finally {
+      setIsLoadingMessage(false);
+    }
+  };
+
   // Screen 1: Farm View
   const FarmScreen = () => {
     const aliveSheep = user?.sheep.filter(s => s.isAlive) || [];
@@ -331,13 +401,33 @@ export default function HomeScreen() {
           <Text style={styles.messageText}>{getStreakMessage()}</Text>
         </View>
 
-        {/* Large Shleepy Character */}
+        {/* Large Shleepy Character - Now Clickable */}
         <View style={styles.shleepyContainer}>
-          <Image
-            source={require('@/shleepy.png')}
-            style={styles.shleepyCharacter}
-            resizeMode="contain"
-          />
+          <TouchableOpacity
+            onPress={handleShleepyClick}
+            disabled={isLoadingMessage}
+            activeOpacity={0.8}
+          >
+            <Image
+              source={require('@/shleepy.png')}
+              style={styles.shleepyCharacter}
+              resizeMode="contain"
+            />
+          </TouchableOpacity>
+
+          {/* Speech Bubble for Messages */}
+          {shleepyMessage && (
+            <View style={styles.speechBubble}>
+              <Image
+                source={require('@/text box.png')}
+                style={styles.speechBubbleImage}
+                resizeMode="stretch"
+              />
+              <Text style={styles.speechBubbleText} numberOfLines={3}>
+                {shleepyMessage}
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* Stats Card */}
@@ -518,10 +608,35 @@ const styles = StyleSheet.create({
   shleepyContainer: {
     marginTop: 40,
     alignItems: 'center',
+    position: 'relative',
   },
   shleepyCharacter: {
-    width: 200,
-    height: 200,
+    width: 280,  // Increased from 200
+    height: 280, // Increased from 200
+  },
+  speechBubble: {
+    position: 'absolute',
+    top: -80,  // Positioned above Shleepy's head
+    left: -150,
+    right: -150,
+    height: 100,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  speechBubbleImage: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+  },
+  speechBubbleText: {
+    fontSize: 9,
+    fontFamily: 'PressStart2P_400Regular',
+    color: '#2c2c2c',
+    textAlign: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    lineHeight: 14,
+    zIndex: 1,
   },
   statsCard: {
     marginHorizontal: 30,
