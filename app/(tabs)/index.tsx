@@ -205,11 +205,11 @@ export default function HomeScreen() {
 
     const containerProps = isNightMode
       ? {
-          colors: ['#0f3785', '#211456', '#00142f'],
+          colors: ['#0f3785', '#211456', '#00142f'] as const,
           style: styles.screen,
         }
       : {
-          colors: ['#97f0ff', '#e9ebee', '#b8d5fe'],
+          colors: ['#97f0ff', '#e9ebee', '#b8d5fe'] as const,
           style: styles.screen,
         };
 
@@ -334,7 +334,7 @@ export default function HomeScreen() {
         {/* Large Shleepy Character */}
         <View style={styles.shleepyContainer}>
           <Image
-            source={require('@/assets/sprites/sheep/default.png')}
+            source={require('@/shleepy.png')}
             style={styles.shleepyCharacter}
             resizeMode="contain"
           />
@@ -401,6 +401,7 @@ const styles = StyleSheet.create({
     width: SCREEN_WIDTH,
     height: SCREEN_HEIGHT,
     backgroundColor: '#1a1a2e',
+    overflow: 'hidden',
   },
 
   // Farm Screen Styles
