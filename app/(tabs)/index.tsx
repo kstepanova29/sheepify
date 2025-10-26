@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   Dimensions,
   Image,
+  ImageBackground,
   ScrollView,
   StyleSheet,
   Text,
@@ -385,7 +386,13 @@ export default function HomeScreen() {
           style={styles.logSleepButton}
           onPress={() => router.push('/sleep-log')}
         >
-          <Text style={styles.logSleepText}>Log Sleep</Text>
+          <ImageBackground
+            source={require('@/text box.png')}
+            style={styles.logSleepButtonImage}
+            resizeMode="contain"
+          >
+            <Text style={styles.logSleepText}>Log Sleep</Text>
+          </ImageBackground>
         </TouchableOpacity>
       </LinearGradient>
     );
@@ -727,19 +734,22 @@ const styles = StyleSheet.create({
   },
   logSleepButton: {
     position: 'absolute',
-    bottom: 30,
-    left: 30,
-    right: 30,
-    padding: 20,
-    backgroundColor: '#e94560',
-    borderRadius: 16,
+    bottom: 10,
+    left: 20,
+    right: 20,
     alignItems: 'center',
     zIndex: 10,
+  },
+  logSleepButtonImage: {
+    width: '100%',
+    height: 100,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   logSleepText: {
     fontSize: 14,
     fontWeight: '400',
-    color: '#fff',
+    color: '#5b3a70',
     fontFamily: 'PressStart2P_400Regular',
   },
 });
