@@ -8,12 +8,18 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+import { useFonts, PressStart2P_400Regular } from '@expo-google-fonts/press-start-2p';
 import { useGameStore } from '../store/gameStore';
 
 export default function SleepLogScreen() {
   const router = useRouter();
   const { startSleep, endSleep, user, activeSleepSession } = useGameStore();
   const [elapsedTime, setElapsedTime] = useState(0);
+
+  // Load retro pixel font
+  const [fontsLoaded] = useFonts({
+    PressStart2P_400Regular,
+  });
 
   // Update elapsed time every second when sleep is active
   useEffect(() => {
@@ -87,6 +93,11 @@ export default function SleepLogScreen() {
 
   const isSleeping = activeSleepSession?.isActive;
   const quality = getSleepQuality(elapsedTime);
+
+  // Don't render until fonts are loaded
+  if (!fontsLoaded) {
+    return null;
+  }
 
   return (
     <ScrollView style={styles.container}>
@@ -206,18 +217,22 @@ const styles = StyleSheet.create({
   },
   backText: {
     color: '#a8a8d1',
-    fontSize: 16,
+    fontSize: 10,
+    fontFamily: 'PressStart2P_400Regular',
   },
   title: {
-    fontSize: 32,
-    fontWeight: 'bold',
+    fontSize: 18,
+    fontWeight: '400',
     color: '#fff',
     marginBottom: 8,
+    fontFamily: 'PressStart2P_400Regular',
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 10,
     color: '#a8a8d1',
     marginBottom: 30,
+    fontFamily: 'PressStart2P_400Regular',
+    lineHeight: 16,
   },
   mainCard: {
     backgroundColor: '#16213e',
@@ -231,16 +246,19 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   cardTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontSize: 14,
+    fontWeight: '400',
     color: '#fff',
     marginBottom: 10,
+    fontFamily: 'PressStart2P_400Regular',
   },
   cardDescription: {
-    fontSize: 16,
+    fontSize: 10,
     color: '#a8a8d1',
     textAlign: 'center',
     marginBottom: 30,
+    fontFamily: 'PressStart2P_400Regular',
+    lineHeight: 16,
   },
   startButton: {
     backgroundColor: '#e94560',
@@ -252,8 +270,9 @@ const styles = StyleSheet.create({
   },
   startButtonText: {
     color: '#fff',
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 12,
+    fontWeight: '400',
+    fontFamily: 'PressStart2P_400Regular',
   },
   wakeButton: {
     backgroundColor: '#ffd93d',
@@ -265,8 +284,9 @@ const styles = StyleSheet.create({
   },
   wakeButtonText: {
     color: '#000',
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 12,
+    fontWeight: '400',
+    fontFamily: 'PressStart2P_400Regular',
   },
   timeCard: {
     backgroundColor: '#0f3460',
@@ -278,15 +298,17 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   timeLabel: {
-    fontSize: 14,
+    fontSize: 10,
     color: '#a8a8d1',
     marginBottom: 8,
+    fontFamily: 'PressStart2P_400Regular',
   },
   timeValue: {
-    fontSize: 48,
-    fontWeight: 'bold',
+    fontSize: 24,
+    fontWeight: '400',
     color: '#fff',
     marginBottom: 12,
+    fontFamily: 'PressStart2P_400Regular',
   },
   qualityBadge: {
     paddingHorizontal: 16,
@@ -303,13 +325,15 @@ const styles = StyleSheet.create({
   },
   rewardText: {
     color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 14,
+    fontWeight: '400',
+    fontSize: 10,
+    fontFamily: 'PressStart2P_400Regular',
   },
   startedText: {
-    fontSize: 14,
+    fontSize: 10,
     color: '#a8a8d1',
     marginBottom: 20,
+    fontFamily: 'PressStart2P_400Regular',
   },
   streakCard: {
     backgroundColor: '#0f3460',
@@ -319,15 +343,19 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   streakText: {
-    fontSize: 16,
+    fontSize: 10,
     color: '#fff',
     textAlign: 'center',
     marginBottom: 8,
+    fontFamily: 'PressStart2P_400Regular',
+    lineHeight: 16,
   },
   warningText: {
-    fontSize: 14,
+    fontSize: 10,
     color: '#ff6b6b',
     textAlign: 'center',
+    fontFamily: 'PressStart2P_400Regular',
+    lineHeight: 16,
   },
   tipsCard: {
     backgroundColor: '#0f3460',
@@ -336,14 +364,17 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   tipsTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: 12,
+    fontWeight: '400',
     color: '#fff',
     marginBottom: 12,
+    fontFamily: 'PressStart2P_400Regular',
   },
   tip: {
-    fontSize: 14,
+    fontSize: 10,
     color: '#a8a8d1',
     marginBottom: 6,
+    fontFamily: 'PressStart2P_400Regular',
+    lineHeight: 16,
   },
 });
