@@ -21,6 +21,18 @@ import {
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
+// Pre-load all images to prevent iOS flickering
+const IMAGES = {
+  cloud: require('@/cloud.png'),
+  sun: require('@/sun.png.png'),
+  moonFrame1: require('@/moon-frame1.png'),
+  moonFrame2: require('@/moon-frame2.png'),
+  windmillFrame1: require('@/farm-windmill-1.png'),
+  windmillFrame2: require('@/farm-windmill-2.png'),
+  sheepFrame1: require('@/assets/sprites/sheep/sheep-frame1.png'),
+  sheepFrame2: require('@/assets/sprites/sheep/sheep-frame2.png'),
+};
+
 export default function HomeScreen() {
   const router = useRouter();
   const { user, initializeUser, addSheep, deleteAllSheep } = useGameStore();
@@ -59,28 +71,35 @@ export default function HomeScreen() {
     }
   }, [manualOverride]);
 
-  // Animate moon frames (switch every second)
+  // Consolidated animation timer for better iOS performance
   useEffect(() => {
-    if (isNightMode) {
-      const interval = setInterval(() => {
-        setMoonFrame(prev => (prev === 0 ? 1 : 0));
-      }, 1000); // Switch frames every 1 second
+    let frameCounter = 0;
+    const interval = setInterval(() => {
+      frameCounter++;
 
-      return () => clearInterval(interval);
-    } else {
-      // Reset moon frame when switching to day
+      // Update windmill every 500ms
+      setWindmillFrame(prev => (prev === 0 ? 1 : 0));
+
+      // Update sheep every second
+      if (frameCounter % 2 === 0) {
+        setSheepFrame(prev => (prev === 0 ? 1 : 0));
+      }
+
+      // Update moon if night mode (every second)
+      if (isNightMode && frameCounter % 2 === 0) {
+        setMoonFrame(prev => (prev === 0 ? 1 : 0));
+      }
+    }, 500); // Base interval of 500ms
+
+    return () => clearInterval(interval);
+  }, [isNightMode]);
+
+  // Reset moon frame when not in night mode
+  useEffect(() => {
+    if (!isNightMode) {
       setMoonFrame(0);
     }
   }, [isNightMode]);
-
-  // Animate sheep frames (switch every second)
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setSheepFrame(prev => (prev === 0 ? 1 : 0));
-    }, 1000); // Switch frames every 1 second
-
-    return () => clearInterval(interval);
-  }, []);
 
   // Toggle day/night for testing
   const toggleDayNight = () => {
@@ -130,15 +149,6 @@ export default function HomeScreen() {
     if (!user) {
       initializeUser('Shepherd');
     }
-  }, []);
-
-  // Windmill animation - toggle frames twice per second (every 500ms)
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setWindmillFrame(prev => prev === 0 ? 1 : 0);
-    }, 500);
-
-    return () => clearInterval(interval);
   }, []);
 
   // Load positions for sheep based on their grid spots
@@ -205,11 +215,11 @@ export default function HomeScreen() {
 
     const containerProps = isNightMode
       ? {
-          colors: ['#0f3785', '#211456', '#00142f'],
+          colors: ['#0f3785', '#211456', '#00142f'] as const,
           style: styles.screen,
         }
       : {
-          colors: ['#97f0ff', '#e9ebee', '#b8d5fe'],
+          colors: ['#97f0ff', '#e9ebee', '#b8d5fe'] as const,
           style: styles.screen,
         };
 
@@ -219,7 +229,7 @@ export default function HomeScreen() {
         <View style={styles.cloudHeaderContainer}>
           <Image
             key="cloud-header"
-            source={require('@/cloud.png')}
+            source={IMAGES.cloud}
             style={styles.cloudHeader}
             resizeMode="contain"
           />
@@ -232,10 +242,8 @@ export default function HomeScreen() {
             key="sun-moon-image"
             source={
               isNightMode
-                ? moonFrame === 0
-                  ? require('@/moon-frame1.png')
-                  : require('@/moon-frame2.png')
-                : require('@/sun.png.png')
+                ? (moonFrame === 0 ? IMAGES.moonFrame1 : IMAGES.moonFrame2)
+                : IMAGES.sun
             }
             style={isNightMode ? styles.moon : styles.sun}
             resizeMode="contain"
@@ -245,9 +253,7 @@ export default function HomeScreen() {
         {/* 3D Farm Platform with Animated Windmill */}
         <Image
           key="windmill-platform"
-          source={windmillFrame === 0
-            ? require('@/farm-windmill-1.png')
-            : require('@/farm-windmill-2.png')}
+          source={windmillFrame === 0 ? IMAGES.windmillFrame1 : IMAGES.windmillFrame2}
           style={styles.farmPlatform}
           resizeMode="contain"
         />
@@ -262,11 +268,7 @@ export default function HomeScreen() {
             return (
               <Image
                 key={sheep.id}
-                source={
-                  sheepFrame === 0
-                    ? require('@/assets/sprites/sheep/sheep-frame1.png')
-                    : require('@/assets/sprites/sheep/sheep-frame2.png')
-                }
+                source={sheepFrame === 0 ? IMAGES.sheepFrame1 : IMAGES.sheepFrame2}
                 style={[
                   styles.sheepSprite,
                   {
