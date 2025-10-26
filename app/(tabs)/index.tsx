@@ -216,7 +216,7 @@ export default function HomeScreen() {
 
   // Handle Shleepy click to generate messages
   const handleShleepyClick = async () => {
-    if (isLoadingMessage || !user) return;
+    if (!user) return;
 
     setIsLoadingMessage(true);
     setShleepyMessage('...');  // Show loading indicator
