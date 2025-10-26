@@ -21,34 +21,43 @@ Personality:
 - Enthusiastic about good sleep habits
 
 Rules:
-- Keep responses under 50 words
+- CRITICAL: Your ENTIRE response must be under 100 characters MAXIMUM (including spaces and emojis)
+- You MUST finish your complete thought within 100 characters - do NOT write incomplete sentences
+- Craft short, punchy, COMPLETE messages that end naturally within the limit
+- Plan your message to fit the limit - if it won't fit, rephrase it shorter
 - Always include at least one sheep pun
-- Use emojis (🐑 😴 💤 🌙 ✨)
-- Be family-friendly`;
+- Use emojis sparingly (🐑 😴 💤 🌙 ✨)
+- Be family-friendly
+- Examples of good length: "Ewe nailed it! 8 hours of sleep! 🐑✨" or "Baaaad sleep ruins wool production! 😴"`;
 
 export const claudeService = {
   async sendMessage(userMessage: string): Promise<string> {
     try {
       const response = await client.messages.create({
         model: 'claude-3-5-haiku-20241022',
-        max_tokens: 150,
+        max_tokens: 60,  // Reduced for 100 char limit
         system: SHLEEPY_SYSTEM_PROMPT,
         messages: [
           {
             role: 'user',
-            content: userMessage,
+            content: userMessage + '\n\nIMPORTANT: Your response must be a complete thought that finishes within 100 characters. Do not write incomplete sentences.',
           },
         ],
       });
 
       if (response.content[0].type === 'text') {
-        return response.content[0].text;
+        let message = response.content[0].text;
+        // Enforce 100 character limit as fallback (should rarely trigger now)
+        if (message.length > 100) {
+          message = message.substring(0, 97) + '...';
+        }
+        return message;
       }
 
-      return "Baaaah! Something went wrong with my wool-gathering thoughts! 🐑";
+      return "Baaaah! Error! 🐑";
     } catch (error) {
       console.error('Claude API Error:', error);
-      return "Ewe won't believe this, but I'm having trouble connecting right now! 😴";
+      return "Connection trouble! 😴";
     }
   },
 
@@ -77,10 +86,11 @@ export const claudeService = {
   },
 
   async generateDream(sleepQuality: 'poor' | 'good' | 'perfect'): Promise<string> {
-    const prompt = `Generate a surreal, dreamlike snippet (1-2 sentences).
-    Include sheep, wool, or sleep themes.
-    Make it absurd and whimsical.
-    Sleep quality was ${sleepQuality}.`;
+    const prompt = `Tell a funny micro-story about what YOU (the user) dreamed last night in second person.
+    Make it silly and absurd with sheep doing ridiculous things.
+    Start with "You dreamed..."
+    Sleep quality was ${sleepQuality} - if poor, make dream chaotic; if perfect, make it peaceful but still silly.
+    Keep it lighthearted and fun, not poetic or serious!`;
 
     return this.sendMessage(prompt);
   },

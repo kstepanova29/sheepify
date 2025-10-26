@@ -2,8 +2,8 @@ import { useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Dimensions,
-  FlatList,
   Image,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -18,23 +18,14 @@ import {
   getOccupiedCount,
   getTotalSpots
 } from '../../utils/sheepSpawner';
+import { claudeService } from '../../services/ai/claudeService';
+import { ShleepyContext } from '../../types/shleepy';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-// Pre-load all images to prevent iOS flickering
-const IMAGES = {
-  cloud: require('@/cloud.png'),
-  sun: require('@/sun.png.png'),
-  windmillSpritesheet: require('@/windmill-spritesheet.png'),
-  moonSpritesheet: require('@/moon-spritesheet.png'),
-  sheepSpritesheet: require('@/assets/sprites/sheep/sheep-spritesheet.png'),
-  sheepDefault: require('@/assets/sprites/sheep/default.png'),
-};
-
 export default function HomeScreen() {
   const router = useRouter();
-  const { user, initializeUser, addSheep, deleteAllSheep } = useGameStore();
-  const flatListRef = useRef<FlatList>(null);
+  const { user, initializeUser, addSheep, deleteAllSheep, sleepHistory } = useGameStore();
   const sheepPositionsRef = useRef<Map<string, { x: number; y: number }>>(new Map());
   const [, forceUpdate] = useState(0); // Force re-render when positions are loaded
   const [windmillFrame, setWindmillFrame] = useState(0); // Windmill animation frame (0 or 1)
@@ -42,6 +33,11 @@ export default function HomeScreen() {
   const [manualOverride, setManualOverride] = useState(false);
   const [moonFrame, setMoonFrame] = useState(0);
   const [sheepFrame, setSheepFrame] = useState(0);
+
+  // Shleepy message state
+  const [shleepyMessage, setShleepyMessage] = useState<string | null>(null);
+  const [isLoadingMessage, setIsLoadingMessage] = useState(false);
+  const [lastSleepSessionShown, setLastSleepSessionShown] = useState<string | null>(null);
 
   // Load retro pixel font
   const [fontsLoaded] = useFonts({
@@ -69,35 +65,28 @@ export default function HomeScreen() {
     }
   }, [manualOverride]);
 
-  // Consolidated animation timer for better iOS performance
+  // Animate moon frames (switch every second)
   useEffect(() => {
-    let frameCounter = 0;
-    const interval = setInterval(() => {
-      frameCounter++;
-
-      // Update windmill every 500ms
-      setWindmillFrame(prev => (prev === 0 ? 1 : 0));
-
-      // Update sheep every second
-      if (frameCounter % 2 === 0) {
-        setSheepFrame(prev => (prev === 0 ? 1 : 0));
-      }
-
-      // Update moon if night mode (every second)
-      if (isNightMode && frameCounter % 2 === 0) {
+    if (isNightMode) {
+      const interval = setInterval(() => {
         setMoonFrame(prev => (prev === 0 ? 1 : 0));
-      }
-    }, 500); // Base interval of 500ms
+      }, 1000); // Switch frames every 1 second
 
-    return () => clearInterval(interval);
-  }, [isNightMode]);
-
-  // Reset moon frame when not in night mode
-  useEffect(() => {
-    if (!isNightMode) {
+      return () => clearInterval(interval);
+    } else {
+      // Reset moon frame when switching to day
       setMoonFrame(0);
     }
   }, [isNightMode]);
+
+  // Animate sheep frames (switch every second)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSheepFrame(prev => (prev === 0 ? 1 : 0));
+    }, 1000); // Switch frames every 1 second
+
+    return () => clearInterval(interval);
+  }, []);
 
   // Toggle day/night for testing
   const toggleDayNight = () => {
@@ -147,6 +136,15 @@ export default function HomeScreen() {
     if (!user) {
       initializeUser('Shepherd');
     }
+  }, []);
+
+  // Windmill animation - toggle frames twice per second (every 500ms)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setWindmillFrame(prev => prev === 0 ? 1 : 0);
+    }, 500);
+
+    return () => clearInterval(interval);
   }, []);
 
   // Load positions for sheep based on their grid spots
@@ -207,6 +205,65 @@ export default function HomeScreen() {
     }
   };
 
+  // Check if there's a new sleep session we haven't shown a dream for
+  const hasNewSleepSession = () => {
+    if (!sleepHistory || sleepHistory.length === 0) return false;
+    const latestSleep = sleepHistory[0];
+    return latestSleep.id !== lastSleepSessionShown;
+  };
+
+  // Handle Shleepy click to generate messages
+  const handleShleepyClick = async () => {
+    if (!user) return;
+
+    setIsLoadingMessage(true);
+    setShleepyMessage('...');  // Show loading indicator
+
+    try {
+      let message = '';
+
+      // Check if this is the first message after waking up from a new sleep session
+      if (hasNewSleepSession()) {
+        // Generate dream message - this is shown as the first message after waking
+        const lastSleep = sleepHistory[0];
+        const sleepQuality = lastSleep.quality;
+        message = await claudeService.generateDream(sleepQuality);
+
+        setLastSleepSessionShown(lastSleep.id);
+      } else {
+        // Generate message based on sleep quality
+        const lastSleep = sleepHistory.length > 0 ? sleepHistory[0] : null;
+
+        if (lastSleep) {
+          const context: ShleepyContext = {
+            sleepDuration: lastSleep.duration,
+            sleepQuality: lastSleep.quality,
+            streak: user.streak,
+            penaltyWarning: user.penalties.lambChopWarning,
+            totalSheep: user.sheep.filter(s => s.isAlive).length,
+            lastSleepDate: user.lastSleepDate,
+          };
+
+          message = await claudeService.generateSleepMessage(context);
+        } else {
+          // No sleep history yet, generate a general message
+          message = await claudeService.sendMessage(
+            "Generate a motivational message about starting a good sleep routine. Be encouraging!"
+          );
+        }
+      }
+
+      setShleepyMessage(message);
+
+      // Message stays visible until replaced by new message
+    } catch (error) {
+      console.error('Error generating message:', error);
+      setShleepyMessage("Baaah! My wool-gathering thoughts are tangled! 🐑");
+    } finally {
+      setIsLoadingMessage(false);
+    }
+  };
+
   // Screen 1: Farm View
   const FarmScreen = () => {
     const aliveSheep = user?.sheep.filter(s => s.isAlive) || [];
@@ -227,7 +284,7 @@ export default function HomeScreen() {
         <View style={styles.cloudHeaderContainer}>
           <Image
             key="cloud-header"
-            source={IMAGES.cloud}
+            source={require('@/cloud.png')}
             style={styles.cloudHeader}
             resizeMode="contain"
           />
@@ -236,35 +293,29 @@ export default function HomeScreen() {
 
         {/* Sun/Moon Icon - Below Header */}
         <View style={styles.sunContainer}>
-          {isNightMode ? (
-            <View style={styles.moonContainer}>
-              <Image
-                source={IMAGES.moonSpritesheet}
-                style={[
-                  styles.moonSpritesheet,
-                  { transform: [{ translateX: moonFrame * -180 }] }
-                ]}
-              />
-            </View>
-          ) : (
-            <Image
-              source={IMAGES.sun}
-              style={styles.sun}
-              resizeMode="contain"
-            />
-          )}
+          <Image
+            key="sun-moon-image"
+            source={
+              isNightMode
+                ? moonFrame === 0
+                  ? require('@/moon-frame1.png')
+                  : require('@/moon-frame2.png')
+                : require('@/sun.png.png')
+            }
+            style={isNightMode ? styles.moon : styles.sun}
+            resizeMode="contain"
+          />
         </View>
 
         {/* 3D Farm Platform with Animated Windmill */}
-        <View style={styles.farmPlatform}>
-          <Image
-            source={IMAGES.windmillSpritesheet}
-            style={[
-              styles.windmillSpritesheet,
-              { transform: [{ translateX: windmillFrame * -315 }] }
-            ]}
-          />
-        </View>
+        <Image
+          key="windmill-platform"
+          source={windmillFrame === 0
+            ? require('@/farm-windmill-1.png')
+            : require('@/farm-windmill-2.png')}
+          style={styles.farmPlatform}
+          resizeMode="contain"
+        />
 
         {/* Sheep on Farm - Diamond shaped grass block */}
         <View style={styles.sheepContainer}>
@@ -274,24 +325,22 @@ export default function HomeScreen() {
             if (!position) return null; // Don't render until position is loaded
 
             return (
-              <View
+              <Image
                 key={sheep.id}
+                source={
+                  sheepFrame === 0
+                    ? require('@/assets/sprites/sheep/sheep-frame1.png')
+                    : require('@/assets/sprites/sheep/sheep-frame2.png')
+                }
                 style={[
-                  styles.sheepSpriteContainer,
+                  styles.sheepSprite,
                   {
                     left: position.x,
                     top: position.y,
                   },
                 ]}
-              >
-                <Image
-                  source={IMAGES.sheepSpritesheet}
-                  style={[
-                    styles.sheepSpritesheet,
-                    { transform: [{ translateX: sheepFrame * -60 }] }
-                  ]}
-                />
-              </View>
+                resizeMode="contain"
+              />
             );
           })}
         </View>
@@ -341,19 +390,34 @@ export default function HomeScreen() {
     const aliveSheep = user?.sheep.filter(s => s.isAlive).length || 0;
 
     return (
-      <View style={styles.screen}>
-        {/* Dynamic Header Text */}
-        <View style={styles.messageHeader}>
-          <Text style={styles.messageText}>{getStreakMessage()}</Text>
-        </View>
-
-        {/* Large Shleepy Character */}
+      <View style={[styles.screen, { backgroundColor: isNightMode ? '#00142f' : '#b9d6fe' }]}>
+        {/* Large Shleepy Character - Now Clickable */}
         <View style={styles.shleepyContainer}>
-          <Image
-            source={IMAGES.sheepDefault}
-            style={styles.shleepyCharacter}
-            resizeMode="contain"
-          />
+          <TouchableOpacity
+            onPress={handleShleepyClick}
+            disabled={isLoadingMessage}
+            activeOpacity={0.8}
+          >
+            <Image
+              source={require('@/shleepy.png')}
+              style={styles.shleepyCharacter}
+              resizeMode="contain"
+            />
+          </TouchableOpacity>
+
+          {/* Speech Bubble for Messages */}
+          {shleepyMessage && (
+            <View style={styles.speechBubble}>
+              <Image
+                source={require('@/speech-bubble.png')}
+                style={styles.speechBubbleImage}
+                resizeMode="contain"
+              />
+              <Text style={styles.speechBubbleText} numberOfLines={7}>
+                {shleepyMessage}
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* Stats Card */}
@@ -381,11 +445,6 @@ export default function HomeScreen() {
     );
   };
 
-  const screens = [
-    { key: 'farm', component: FarmScreen },
-    { key: 'stats', component: StatsScreen },
-  ];
-
   // Don't render until fonts are loaded
   if (!fontsLoaded) {
     return null;
@@ -393,17 +452,23 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <FlatList
-        ref={flatListRef}
+      <ScrollView
+        horizontal
         pagingEnabled
-        data={screens}
-        renderItem={({ item }) => <item.component />}
-        keyExtractor={(item) => item.key}
-        showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
         snapToAlignment="center"
         decelerationRate="fast"
         bounces={false}
-      />
+        scrollEventThrottle={16}
+        contentContainerStyle={styles.scrollContent}
+      >
+        <View style={styles.pageContainer}>
+          <FarmScreen />
+        </View>
+        <View style={styles.pageContainer}>
+          <StatsScreen />
+        </View>
+      </ScrollView>
     </View>
   );
 }
@@ -413,10 +478,19 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#1a1a2e',
   },
+  scrollContent: {
+    flexDirection: 'row',  // Lay out pages horizontally
+  },
+  pageContainer: {
+    width: SCREEN_WIDTH,
+    height: SCREEN_HEIGHT,
+    overflow: 'hidden',  // Critical: prevents any content from bleeding between pages
+  },
   screen: {
     width: SCREEN_WIDTH,
     height: SCREEN_HEIGHT,
     backgroundColor: '#1a1a2e',
+    overflow: 'hidden',
   },
 
   // Farm Screen Styles
@@ -464,15 +538,6 @@ const styles = StyleSheet.create({
     width: 180,
     height: 180,
   },
-  moonContainer: {
-    width: 180,
-    height: 180,
-    overflow: 'hidden',
-  },
-  moonSpritesheet: {
-    width: 360, // 2 frames * 180
-    height: 180,
-  },
   currencyBar: {
     position: 'absolute',
     left: 20,
@@ -503,11 +568,7 @@ const styles = StyleSheet.create({
     left: SCREEN_WIDTH * 0.08,
     width: SCREEN_WIDTH * 0.84,
     height: SCREEN_HEIGHT * 0.48,
-    overflow: 'hidden', // Hide parts of spritesheet outside frame
-  },
-  windmillSpritesheet: {
-    width: 630, // 2 frames * 315px
-    height: 389,
+    overflow: 'visible',
   },
   sheepContainer: {
     position: 'absolute',
@@ -519,46 +580,55 @@ const styles = StyleSheet.create({
     zIndex: 5,
     overflow: 'visible',
   },
-  sheepSpriteContainer: {
+  sheepSprite: {
     position: 'absolute',
     width: 60,
-    height: 60,
-    overflow: 'hidden', // Hide parts of spritesheet outside frame
-  },
-  sheepSpritesheet: {
-    width: 120, // 2 frames * 60
     height: 60,
   },
 
   // Stats Screen Styles
-  messageHeader: {
-    marginTop: 80,
-    marginHorizontal: 30,
-    padding: 20,
-    backgroundColor: '#16213e',
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: '#0f3460',
-  },
-  messageText: {
-    fontSize: 12,
-    fontWeight: '400',
-    color: '#fff',
-    textAlign: 'center',
-    fontFamily: 'PressStart2P_400Regular',
-    lineHeight: 20,
-  },
   shleepyContainer: {
-    marginTop: 40,
+    marginTop: 260,  // Adjusted to keep speech bubble fully within page bounds (260 - 250 = 10px from top)
     alignItems: 'center',
+    position: 'relative',
   },
   shleepyCharacter: {
-    width: 200,
-    height: 200,
+    width: 320,  // Made bigger
+    height: 320, // Made bigger
+  },
+  speechBubble: {
+    position: 'absolute',
+    top: -280,  // Positioned above the bigger head
+    alignSelf: 'center',  // Center horizontally
+    width: 1400,  // WAY bigger bubble
+    height: 350,  // WAY bigger height
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  speechBubbleImage: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    transform: [
+    { scaleX: 1.5 },  // widen
+    { scaleY: 1.5 },  // make taller
+],
+
+  },
+  speechBubbleText: {
+    fontSize: 13,  // Bigger text for bigger bubble
+    fontFamily: 'PressStart2P_400Regular',
+    color: '#2c2c2c',
+    textAlign: 'center',
+    paddingHorizontal: 50,  // Lots of padding
+    paddingVertical: 30,  // Lots of vertical padding
+    lineHeight: 22,  // Better line spacing
+    zIndex: 1,
+    maxWidth: 370,  // Wide but text is short (100 chars)
   },
   statsCard: {
     marginHorizontal: 30,
-    marginTop: 30,
+    marginTop: -40,  // Increased to add more space
     padding: 20,
     backgroundColor: '#16213e',
     borderRadius: 16,
