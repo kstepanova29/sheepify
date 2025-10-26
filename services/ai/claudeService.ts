@@ -21,40 +21,40 @@ Personality:
 - Enthusiastic about good sleep habits
 
 Rules:
-- CRITICAL: Keep responses under 180 characters MAXIMUM (including spaces and emojis)
+- CRITICAL: Keep responses under 100 characters MAXIMUM (including spaces and emojis)
 - Always include at least one sheep pun
 - Use emojis sparingly (🐑 😴 💤 🌙 ✨)
 - Be family-friendly
-- Be concise and punchy`;
+- Be very concise and punchy`;
 
 export const claudeService = {
   async sendMessage(userMessage: string): Promise<string> {
     try {
       const response = await client.messages.create({
         model: 'claude-3-5-haiku-20241022',
-        max_tokens: 100,  // Reduced to encourage shorter responses
+        max_tokens: 60,  // Reduced for 100 char limit
         system: SHLEEPY_SYSTEM_PROMPT,
         messages: [
           {
             role: 'user',
-            content: userMessage + '\n\nRemember: Maximum 180 characters!',
+            content: userMessage + '\n\nRemember: Maximum 100 characters!',
           },
         ],
       });
 
       if (response.content[0].type === 'text') {
         let message = response.content[0].text;
-        // Enforce 180 character limit
-        if (message.length > 180) {
-          message = message.substring(0, 177) + '...';
+        // Enforce 100 character limit
+        if (message.length > 100) {
+          message = message.substring(0, 97) + '...';
         }
         return message;
       }
 
-      return "Baaaah! Something went wrong! 🐑";
+      return "Baaaah! Error! 🐑";
     } catch (error) {
       console.error('Claude API Error:', error);
-      return "Ewe won't believe this, but I'm having trouble! 😴";
+      return "Connection trouble! 😴";
     }
   },
 
