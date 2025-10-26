@@ -303,10 +303,10 @@ const styles = StyleSheet.create({
   // Farm Screen Styles
   cloudHeaderContainer: {
     position: 'absolute',
-    top: 40,
-    left: SCREEN_WIDTH * 0.02,
-    right: SCREEN_WIDTH * 0.02,
-    height: 140,
+    top: 30,
+    left: SCREEN_WIDTH * -0.08,  // Adjusted for wider cloud
+    right: SCREEN_WIDTH * -0.08,  // Adjusted for wider cloud
+    height: 210,  // 1.5x original height (140 * 1.5)
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 10,
@@ -318,7 +318,7 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   farmName: {
-    fontSize: 24,
+    fontSize: 36,  // 1.5x original font size (24 * 1.5)
     fontWeight: 'bold',
     color: '#333',
     textAlign: 'center',
