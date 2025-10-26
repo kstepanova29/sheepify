@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useFonts, PressStart2P_400Regular } from '@expo-google-fonts/press-start-2p';
 import { useGameStore } from '../../store/gameStore';
 import {
   getRandomPositionInDiamond,
@@ -26,6 +27,11 @@ export default function HomeScreen() {
   const sheepPositionsRef = useRef<Map<string, { x: number; y: number }>>(new Map());
   const [, forceUpdate] = useState(0); // Force re-render when positions are loaded
   const [windmillFrame, setWindmillFrame] = useState(0); // Windmill animation frame (0 or 1)
+
+  // Load retro pixel font
+  const [fontsLoaded] = useFonts({
+    PressStart2P_400Regular,
+  });
 
   const handleSpawnSheep = async () => {
     if (!user) return;
@@ -272,6 +278,11 @@ export default function HomeScreen() {
     { key: 'stats', component: StatsScreen },
   ];
 
+  // Don't render until fonts are loaded
+  if (!fontsLoaded) {
+    return null;
+  }
+
   return (
     <View style={styles.container}>
       <FlatList
@@ -303,7 +314,7 @@ const styles = StyleSheet.create({
   // Farm Screen Styles
   cloudHeaderContainer: {
     position: 'absolute',
-    top: 30,
+    top: 26,  // Moved up by 4 pixels (30 - 4)
     left: SCREEN_WIDTH * -0.08,  // Adjusted for wider cloud
     right: SCREEN_WIDTH * -0.08,  // Adjusted for wider cloud
     height: 210,  // 1.5x original height (140 * 1.5)
@@ -318,11 +329,14 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   farmName: {
-    fontSize: 36,  // 1.5x original font size (24 * 1.5)
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: 18,  // Reduced to fit in cloud
+    fontWeight: '400',  // Normal weight for pixel font
+    color: '#2c2c2c',  // Slightly darker for better contrast
     textAlign: 'center',
     zIndex: 2,
+    fontFamily: 'PressStart2P_400Regular',  // Retro 8-bit pixel font
+    letterSpacing: -1,  // Tighter spacing for pixel font
+    lineHeight: 24,  // Better vertical alignment
   },
   sunContainer: {
     position: 'absolute',
