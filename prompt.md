@@ -1,5 +1,7 @@
-The method for finding the green area and contours should be the same; dont change it. the sheep should ONLY spawn in that certain area. Just change the windmill!
+we are now going to be merging the branch sun+moon+bg into this branch. we note that sun+moon+bg is very outdated in its implementations of many things including the farmland and sheeps. Thus, when merging the branch into production ui the only changes to production ui is:
+1. The background should become the background used in sun+moon+bg
+2. The day and night cycle and switch to daybutton should be imported as well
+3. The animation for the moon and the new sun and the new moon (similar to the windmill animation) should also be taken
+4. Implementation of sheep should remain constant except for the sheep animation (which is similar in nature and implementation to the windmill)
 
-Then implement the windmill animation again. For your convenience I have added farm+windmill-1 and 2.tiff as the 2 frames. The animation should change twice a second.
-
-Sheep should not spawn ON THE WINDMILL
+Note that things might go terribly wrong so if i want to revert back we will revert to this moment,
