@@ -2,8 +2,8 @@ import { useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Dimensions,
-  FlatList,
   Image,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -26,7 +26,6 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 export default function HomeScreen() {
   const router = useRouter();
   const { user, initializeUser, addSheep, deleteAllSheep, sleepHistory } = useGameStore();
-  const flatListRef = useRef<FlatList>(null);
   const sheepPositionsRef = useRef<Map<string, { x: number; y: number }>>(new Map());
   const [, forceUpdate] = useState(0); // Force re-render when positions are loaded
   const [windmillFrame, setWindmillFrame] = useState(0); // Windmill animation frame (0 or 1)
@@ -448,11 +447,6 @@ export default function HomeScreen() {
     );
   };
 
-  const screens = [
-    { key: 'farm', component: FarmScreen },
-    { key: 'stats', component: StatsScreen },
-  ];
-
   // Don't render until fonts are loaded
   if (!fontsLoaded) {
     return null;
@@ -460,17 +454,17 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <FlatList
-        ref={flatListRef}
+      <ScrollView
         pagingEnabled
-        data={screens}
-        renderItem={({ item }) => <item.component />}
-        keyExtractor={(item) => item.key}
         showsVerticalScrollIndicator={false}
         snapToAlignment="center"
         decelerationRate="fast"
         bounces={false}
-      />
+        scrollEventThrottle={16}
+      >
+        <FarmScreen />
+        <StatsScreen />
+      </ScrollView>
     </View>
   );
 }
@@ -582,7 +576,7 @@ const styles = StyleSheet.create({
 
   // Stats Screen Styles
   shleepyContainer: {
-    marginTop: 240,  // Positioned to keep speech bubble within screen bounds
+    marginTop: 200,  // Positioned to keep speech bubble within screen bounds
     alignItems: 'center',
     position: 'relative',
     overflow: 'visible',  // Allow speech bubble to show above Shleepy
