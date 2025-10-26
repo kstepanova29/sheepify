@@ -325,7 +325,7 @@ export default function HomeScreen() {
     const aliveSheep = user?.sheep.filter(s => s.isAlive).length || 0;
 
     return (
-      <View style={styles.screen}>
+      <View style={[styles.screen, { backgroundColor: isNightMode ? '#00142f' : '#b9d6fe' }]}>
         {/* Dynamic Header Text */}
         <View style={styles.messageHeader}>
           <Text style={styles.messageText}>{getStreakMessage()}</Text>
