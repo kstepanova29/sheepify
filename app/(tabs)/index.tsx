@@ -4,6 +4,7 @@ import {
   Dimensions,
   FlatList,
   Image,
+  ImageBackground,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -12,24 +13,18 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFonts, PressStart2P_400Regular } from '@expo-google-fonts/press-start-2p';
 import { useGameStore } from '../../store/gameStore';
-import {
-  getRandomPositionInDiamond,
-  hasAvailableSpots,
-  getOccupiedCount,
-  getTotalSpots
-} from '../../utils/sheepSpawner';
+import { getRandomPositionInDiamond } from '../../utils/sheepSpawner';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { user, initializeUser, addSheep, deleteAllSheep } = useGameStore();
+  const { user, initializeUser } = useGameStore();
   const flatListRef = useRef<FlatList>(null);
   const sheepPositionsRef = useRef<Map<string, { x: number; y: number }>>(new Map());
   const [, forceUpdate] = useState(0); // Force re-render when positions are loaded
   const [windmillFrame, setWindmillFrame] = useState(0); // Windmill animation frame (0 or 1)
   const [isNightMode, setIsNightMode] = useState(false);
-  const [manualOverride, setManualOverride] = useState(false);
   const [moonFrame, setMoonFrame] = useState(0);
   const [sheepFrame, setSheepFrame] = useState(0);
 
@@ -47,17 +42,15 @@ export default function HomeScreen() {
 
   // Update night mode based on actual time
   useEffect(() => {
-    if (!manualOverride) {
+    setIsNightMode(checkIsNightTime());
+
+    // Update every minute to check for day/night changes
+    const interval = setInterval(() => {
       setIsNightMode(checkIsNightTime());
+    }, 60000); // Check every minute
 
-      // Update every minute to check for day/night changes
-      const interval = setInterval(() => {
-        setIsNightMode(checkIsNightTime());
-      }, 60000); // Check every minute
-
-      return () => clearInterval(interval);
-    }
-  }, [manualOverride]);
+    return () => clearInterval(interval);
+  }, []);
 
   // Animate moon frames (switch every second)
   useEffect(() => {
@@ -82,48 +75,6 @@ export default function HomeScreen() {
     return () => clearInterval(interval);
   }, []);
 
-  // Toggle day/night for testing
-  const toggleDayNight = () => {
-    setManualOverride(true);
-    setIsNightMode(!isNightMode);
-  };
-
-  const handleSpawnSheep = async () => {
-    if (!user) return;
-
-    // Check if there are available grid spots
-    if (!hasAvailableSpots()) {
-      console.log(`[HomeScreen] Grid is full! ${getOccupiedCount()}/${getTotalSpots()} spots occupied`);
-      return;
-    }
-
-    const platformWidth = SCREEN_WIDTH * 0.84;
-    const platformHeight = SCREEN_HEIGHT * 0.48;
-
-    // Get random position from grid system
-    const position = await getRandomPositionInDiamond(platformWidth, platformHeight);
-
-    if (!position) {
-      console.log('[HomeScreen] No position available - grid is full');
-      return;
-    }
-
-    // Add new sheep with grid spot ID
-    addSheep({
-      name: `Sheep #${user.totalSheepEarned + 1}`,
-      earnedDate: new Date(),
-      woolProduction: 1,
-      isAlive: true,
-      gridSpotId: position.gridSpotId,
-    });
-  };
-
-  const handleDeleteAllSheep = () => {
-    if (!user) return;
-    // Clear stored positions and delete all sheep
-    sheepPositionsRef.current.clear();
-    deleteAllSheep();
-  };
 
   useEffect(() => {
     // Initialize user if not exists
@@ -205,11 +156,11 @@ export default function HomeScreen() {
 
     const containerProps = isNightMode
       ? {
-          colors: ['#0f3785', '#211456', '#00142f'],
+          colors: ['#0f3785', '#211456', '#00142f'] as const,
           style: styles.screen,
         }
       : {
-          colors: ['#97f0ff', '#e9ebee', '#b8d5fe'],
+          colors: ['#97f0ff', '#e9ebee', '#b8d5fe'] as const,
           style: styles.screen,
         };
 
@@ -280,41 +231,18 @@ export default function HomeScreen() {
           })}
         </View>
 
-        {/* Toggle Day/Night Button - Testing */}
-        <TouchableOpacity
-          style={styles.toggleDayNightButton}
-          onPress={toggleDayNight}
-        >
-          <Text style={styles.toggleDayNightText}>
-            {isNightMode ? 'Switch to Day' : 'Switch to Night'}
-          </Text>
-        </TouchableOpacity>
-
-        {/* Delete All Sheep Button - Testing */}
-        <TouchableOpacity
-          style={styles.deleteAllSheepButton}
-          onPress={handleDeleteAllSheep}
-        >
-          <Text style={styles.deleteAllSheepText}>Delete All</Text>
-        </TouchableOpacity>
-
-        {/* Spawn Sheep Button - Testing */}
-        <TouchableOpacity
-          style={[styles.spawnSheepButton, !hasAvailableSpots() && styles.spawnButtonDisabled]}
-          onPress={handleSpawnSheep}
-          disabled={!hasAvailableSpots()}
-        >
-          <Text style={styles.spawnSheepText}>
-            Spawn Sheep ({getOccupiedCount()}/{getTotalSpots()})
-          </Text>
-        </TouchableOpacity>
-
         {/* Log Sleep Button - Bottom */}
         <TouchableOpacity
           style={styles.logSleepButton}
           onPress={() => router.push('/sleep-log')}
         >
-          <Text style={styles.logSleepText}>Log Sleep</Text>
+          <ImageBackground
+            source={require('@/text box.png')}
+            style={styles.logSleepButtonImage}
+            resizeMode="contain"
+          >
+            <Text style={styles.logSleepText}>Log Sleep</Text>
+          </ImageBackground>
         </TouchableOpacity>
       </LinearGradient>
     );
@@ -547,76 +475,28 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontFamily: 'PressStart2P_400Regular',
   },
-  toggleDayNightButton: {
-    position: 'absolute',
-    bottom: 250,
-    left: 30,
-    right: 30,
-    padding: 15,
-    backgroundColor: '#9b59b6',
-    borderRadius: 12,
-    alignItems: 'center',
-    zIndex: 10,
-  },
-  toggleDayNightText: {
-    fontSize: 12,
-    fontWeight: '400',
-    color: '#fff',
-    fontFamily: 'PressStart2P_400Regular',
-  },
-  deleteAllSheepButton: {
-    position: 'absolute',
-    bottom: 180,
-    left: 30,
-    right: 30,
-    padding: 15,
-    backgroundColor: '#ff6b6b',
-    borderRadius: 12,
-    alignItems: 'center',
-    zIndex: 10,
-  },
-  deleteAllSheepText: {
-    fontSize: 12,
-    fontWeight: '400',
-    color: '#fff',
-    fontFamily: 'PressStart2P_400Regular',
-  },
-  spawnSheepButton: {
-    position: 'absolute',
-    bottom: 110,
-    left: 30,
-    right: 30,
-    padding: 15,
-    backgroundColor: '#4a90e2',
-    borderRadius: 12,
-    alignItems: 'center',
-    zIndex: 10,
-  },
-  spawnSheepText: {
-    fontSize: 12,
-    fontWeight: '400',
-    color: '#fff',
-    fontFamily: 'PressStart2P_400Regular',
-  },
-  spawnButtonDisabled: {
-    backgroundColor: '#999',
-    opacity: 0.6,
-  },
   logSleepButton: {
     position: 'absolute',
-    bottom: 30,
-    left: 30,
-    right: 30,
-    padding: 20,
-    backgroundColor: '#e94560',
-    borderRadius: 16,
+    bottom: -10,
+    left: 10,
+    right: 10,
+    height: 450,
     alignItems: 'center',
+    justifyContent: 'center',
     zIndex: 10,
   },
+  logSleepButtonImage: {
+    width: '100%',
+    height: '100%',
+    alignItems: 'center',
+    
+    justifyContent: 'center',
+    
+  },
   logSleepText: {
-    fontSize: 14,
+    fontSize: 20,
     fontWeight: '400',
-    color: '#fff',
+    color: '#2c2c2c',
     fontFamily: 'PressStart2P_400Regular',
   },
 });
