@@ -594,10 +594,10 @@ const styles = StyleSheet.create({
   },
   speechBubble: {
     position: 'absolute',
-    top: -380,  // Positioned higher for bigger bubble
-    left: -280,  // Center the much wider bubble
-    width: 840,  // Much larger width
-    height: 400,  // Much larger height
+    top: -180,  // Positioned directly above Shleepy's head
+    alignSelf: 'center',  // Center horizontally
+    width: 360,  // Smaller bubble for 180 char limit
+    height: 180,  // Proportional height
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -607,15 +607,15 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   speechBubbleText: {
-    fontSize: 14,  // Good readable size
+    fontSize: 10,  // Smaller for concise messages
     fontFamily: 'PressStart2P_400Regular',
     color: '#2c2c2c',
     textAlign: 'center',
-    paddingHorizontal: 100,  // More padding for larger bubble
-    paddingVertical: 60,  // More vertical padding
-    lineHeight: 24,  // Better line spacing
+    paddingHorizontal: 30,  // Appropriate padding
+    paddingVertical: 25,  // Appropriate vertical padding
+    lineHeight: 16,  // Tight line spacing
     zIndex: 1,
-    maxWidth: 640,  // Much more space for text
+    maxWidth: 300,  // Fits 180 chars nicely
   },
   statsCard: {
     marginHorizontal: 30,
