@@ -67,6 +67,9 @@ export default function HomeScreen() {
       }, 1000); // Switch frames every 1 second
 
       return () => clearInterval(interval);
+    } else {
+      // Reset moon frame when switching to day
+      setMoonFrame(0);
     }
   }, [isNightMode]);
 
@@ -215,6 +218,7 @@ export default function HomeScreen() {
         {/* Farm Name Cloud Header */}
         <View style={styles.cloudHeaderContainer}>
           <Image
+            key="cloud-header"
             source={require('@/cloud.png')}
             style={styles.cloudHeader}
             resizeMode="contain"
@@ -225,6 +229,7 @@ export default function HomeScreen() {
         {/* Sun/Moon Icon - Below Header */}
         <View style={styles.sunContainer}>
           <Image
+            key="sun-moon-image"
             source={
               isNightMode
                 ? moonFrame === 0
@@ -239,6 +244,7 @@ export default function HomeScreen() {
 
         {/* 3D Farm Platform with Animated Windmill */}
         <Image
+          key="windmill-platform"
           source={windmillFrame === 0
             ? require('@/farm-windmill-1.png')
             : require('@/farm-windmill-2.png')}
