@@ -370,9 +370,10 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   currencyValue: {
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: 12,
+    fontWeight: '400',
     color: '#fff',
+    fontFamily: 'PressStart2P_400Regular',
   },
   farmPlatform: {
     position: 'absolute',
@@ -409,10 +410,12 @@ const styles = StyleSheet.create({
     borderColor: '#0f3460',
   },
   messageText: {
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: 12,
+    fontWeight: '400',
     color: '#fff',
     textAlign: 'center',
+    fontFamily: 'PressStart2P_400Regular',
+    lineHeight: 20,
   },
   shleepyContainer: {
     marginTop: 40,
@@ -437,13 +440,15 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   statLabel: {
-    fontSize: 16,
+    fontSize: 10,
     color: '#a8a8d1',
+    fontFamily: 'PressStart2P_400Regular',
   },
   statValue: {
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: 12,
+    fontWeight: '400',
     color: '#fff',
+    fontFamily: 'PressStart2P_400Regular',
   },
   deleteAllSheepButton: {
     position: 'absolute',
@@ -457,9 +462,10 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   deleteAllSheepText: {
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 12,
+    fontWeight: '400',
     color: '#fff',
+    fontFamily: 'PressStart2P_400Regular',
   },
   spawnSheepButton: {
     position: 'absolute',
@@ -473,9 +479,10 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   spawnSheepText: {
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 12,
+    fontWeight: '400',
     color: '#fff',
+    fontFamily: 'PressStart2P_400Regular',
   },
   spawnButtonDisabled: {
     backgroundColor: '#999',
@@ -493,8 +500,9 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   logSleepText: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 14,
+    fontWeight: '400',
     color: '#fff',
+    fontFamily: 'PressStart2P_400Regular',
   },
 });
