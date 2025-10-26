@@ -25,12 +25,9 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const IMAGES = {
   cloud: require('@/cloud.png'),
   sun: require('@/sun.png.png'),
-  moonFrame1: require('@/moon-frame1.png'),
-  moonFrame2: require('@/moon-frame2.png'),
-  windmillFrame1: require('@/farm-windmill-1.png'),
-  windmillFrame2: require('@/farm-windmill-2.png'),
-  sheepFrame1: require('@/assets/sprites/sheep/sheep-frame1.png'),
-  sheepFrame2: require('@/assets/sprites/sheep/sheep-frame2.png'),
+  windmillSpritesheet: require('@/windmill-spritesheet.png'),
+  moonSpritesheet: require('@/moon-spritesheet.png'),
+  sheepSpritesheet: require('@/assets/sprites/sheep/sheep-spritesheet.png'),
   sheepDefault: require('@/assets/sprites/sheep/default.png'),
 };
 
@@ -240,18 +237,16 @@ export default function HomeScreen() {
         {/* Sun/Moon Icon - Below Header */}
         <View style={styles.sunContainer}>
           {isNightMode ? (
-            <>
+            <View style={styles.moonContainer}>
               <Image
-                source={IMAGES.moonFrame1}
-                style={[styles.moon, { opacity: moonFrame === 0 ? 1 : 0 }]}
+                source={IMAGES.moonSpritesheet}
+                style={[
+                  styles.moonSpritesheet,
+                  { transform: [{ translateX: moonFrame * -180 }] }
+                ]}
                 resizeMode="contain"
               />
-              <Image
-                source={IMAGES.moonFrame2}
-                style={[styles.moon, { opacity: moonFrame === 1 ? 1 : 0, position: 'absolute' }]}
-                resizeMode="contain"
-              />
-            </>
+            </View>
           ) : (
             <Image
               source={IMAGES.sun}
@@ -264,13 +259,11 @@ export default function HomeScreen() {
         {/* 3D Farm Platform with Animated Windmill */}
         <View style={styles.farmPlatform}>
           <Image
-            source={IMAGES.windmillFrame1}
-            style={[styles.farmPlatformImage, { opacity: windmillFrame === 0 ? 1 : 0 }]}
-            resizeMode="contain"
-          />
-          <Image
-            source={IMAGES.windmillFrame2}
-            style={[styles.farmPlatformImage, { opacity: windmillFrame === 1 ? 1 : 0 }]}
+            source={IMAGES.windmillSpritesheet}
+            style={[
+              styles.windmillSpritesheet,
+              { transform: [{ translateX: windmillFrame * -(SCREEN_WIDTH * 0.84) }] }
+            ]}
             resizeMode="contain"
           />
         </View>
@@ -294,13 +287,11 @@ export default function HomeScreen() {
                 ]}
               >
                 <Image
-                  source={IMAGES.sheepFrame1}
-                  style={[styles.sheepSprite, { opacity: sheepFrame === 0 ? 1 : 0 }]}
-                  resizeMode="contain"
-                />
-                <Image
-                  source={IMAGES.sheepFrame2}
-                  style={[styles.sheepSprite, { opacity: sheepFrame === 1 ? 1 : 0, position: 'absolute' }]}
+                  source={IMAGES.sheepSpritesheet}
+                  style={[
+                    styles.sheepSpritesheet,
+                    { transform: [{ translateX: sheepFrame * -60 }] }
+                  ]}
                   resizeMode="contain"
                 />
               </View>
@@ -476,6 +467,15 @@ const styles = StyleSheet.create({
     width: 180,
     height: 180,
   },
+  moonContainer: {
+    width: 180,
+    height: 180,
+    overflow: 'hidden',
+  },
+  moonSpritesheet: {
+    width: 360, // 2 frames * 180
+    height: 180,
+  },
   currencyBar: {
     position: 'absolute',
     left: 20,
@@ -506,12 +506,11 @@ const styles = StyleSheet.create({
     left: SCREEN_WIDTH * 0.08,
     width: SCREEN_WIDTH * 0.84,
     height: SCREEN_HEIGHT * 0.48,
-    overflow: 'visible',
+    overflow: 'hidden', // Hide parts of spritesheet outside frame
   },
-  farmPlatformImage: {
-    position: 'absolute',
-    width: '100%',
-    height: '100%',
+  windmillSpritesheet: {
+    width: SCREEN_WIDTH * 0.84 * 2, // 2 frames wide
+    height: SCREEN_HEIGHT * 0.48,
   },
   sheepContainer: {
     position: 'absolute',
@@ -527,9 +526,10 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: 60,
     height: 60,
+    overflow: 'hidden', // Hide parts of spritesheet outside frame
   },
-  sheepSprite: {
-    width: 60,
+  sheepSpritesheet: {
+    width: 120, // 2 frames * 60
     height: 60,
   },
 
