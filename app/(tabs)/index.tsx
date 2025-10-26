@@ -462,8 +462,12 @@ export default function HomeScreen() {
         bounces={false}
         scrollEventThrottle={16}
       >
-        <FarmScreen />
-        <StatsScreen />
+        <View style={styles.pageContainer}>
+          <FarmScreen />
+        </View>
+        <View style={styles.pageContainer}>
+          <StatsScreen />
+        </View>
       </ScrollView>
     </View>
   );
@@ -473,6 +477,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#1a1a2e',
+  },
+  pageContainer: {
+    width: SCREEN_WIDTH,
+    height: SCREEN_HEIGHT,
+    overflow: 'hidden',  // Critical: prevents any content from bleeding between pages
   },
   screen: {
     width: SCREEN_WIDTH,
@@ -576,10 +585,9 @@ const styles = StyleSheet.create({
 
   // Stats Screen Styles
   shleepyContainer: {
-    marginTop: 200,  // Positioned to keep speech bubble within screen bounds
+    marginTop: 260,  // Adjusted to keep speech bubble fully within page bounds (260 - 250 = 10px from top)
     alignItems: 'center',
     position: 'relative',
-    overflow: 'visible',  // Allow speech bubble to show above Shleepy
   },
   shleepyCharacter: {
     width: 320,  // Made bigger
@@ -587,7 +595,7 @@ const styles = StyleSheet.create({
   },
   speechBubble: {
     position: 'absolute',
-    top: -210,  // Positioned above the bigger head
+    top: -250,  // Positioned above the bigger head
     alignSelf: 'center',  // Center horizontally
     width: 1400,  // WAY bigger bubble
     height: 350,  // WAY bigger height
@@ -598,7 +606,11 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: '100%',
     height: '100%',
-    transform: [{ scaleX: 1.5 }],
+    transform: [
+    { scaleX: 1.5 },  // widen
+    { scaleY: 1.5 },  // make taller
+],
+
   },
   speechBubbleText: {
     fontSize: 12,  // Bigger text for bigger bubble
