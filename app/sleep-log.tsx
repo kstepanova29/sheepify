@@ -49,15 +49,15 @@ export default function SleepLogScreen() {
   };
 
   const getSleepQuality = (hours: number) => {
-    if (hours < 6) return { text: 'Poor', emoji: '😴', color: '#ff6b6b' };
-    if (hours < 8) return { text: 'Good', emoji: '😊', color: '#ffd93d' };
-    return { text: 'Perfect', emoji: '🌟', color: '#6bcf7f' };
+    if (hours < 6) return { text: 'Poor', emoji: '', color: '#ff6b6b' };
+    if (hours < 8) return { text: 'Good', emoji: '', color: '#ffd93d' };
+    return { text: 'Perfect', emoji: '', color: '#6bcf7f' };
   };
 
   const handleStartSleep = () => {
     startSleep();
     Alert.alert(
-      '🌙 Good Night!',
+      'Good Night!',
       'Sleep tracking started. Tap "I Woke Up!" when you wake up in the morning.',
       [{ text: 'Sleep Well!' }]
     );
@@ -69,9 +69,9 @@ export default function SleepLogScreen() {
     const earnedSheep = duration >= 8 && duration <= 10;
 
     Alert.alert(
-      `${quality.emoji} ${quality.text} Sleep!`,
+      `${quality.text} Sleep!`,
       earnedSheep
-        ? `You slept ${duration.toFixed(1)} hours and earned a new sheep! 🐑`
+        ? `You slept ${duration.toFixed(1)} hours and earned a new sheep!`
         : `You slept ${duration.toFixed(1)} hours. ${
             duration < 8
               ? 'Sleep 8-10 hours to earn sheep!'
@@ -107,7 +107,7 @@ export default function SleepLogScreen() {
           <Text style={styles.backText}>← Back</Text>
         </TouchableOpacity>
 
-        <Text style={styles.title}>💤 Sleep Tracker</Text>
+        <Text style={styles.title}>Sleep Tracker</Text>
         <Text style={styles.subtitle}>
           {isSleeping ? 'Tracking your sleep...' : 'Ready to track your sleep'}
         </Text>
@@ -116,7 +116,6 @@ export default function SleepLogScreen() {
         {!isSleeping ? (
           // START SLEEP VIEW
           <View style={styles.mainCard}>
-            <Text style={styles.bigEmoji}>🌙</Text>
             <Text style={styles.cardTitle}>Ready for Bed?</Text>
             <Text style={styles.cardDescription}>
               Tap the button below when you're going to sleep
@@ -126,18 +125,18 @@ export default function SleepLogScreen() {
               style={styles.startButton}
               onPress={handleStartSleep}
             >
-              <Text style={styles.startButtonText}>😴 I'm Going to Sleep</Text>
+              <Text style={styles.startButtonText}>I'm Going to Sleep</Text>
             </TouchableOpacity>
 
             {/* Streak Info */}
             {user && (
               <View style={styles.streakCard}>
                 <Text style={styles.streakText}>
-                  Current Streak: {user.streak} nights 🔥
+                  Current Streak: {user.streak} nights
                 </Text>
                 {user.penalties.lambChopWarning > 0 && (
                   <Text style={styles.warningText}>
-                    ⚠️ {3 - user.penalties.lambChopWarning} more bad night(s)
+                    {3 - user.penalties.lambChopWarning} more bad night(s)
                     until Lamb Chop penalty!
                   </Text>
                 )}
@@ -147,7 +146,6 @@ export default function SleepLogScreen() {
         ) : (
           // SLEEPING VIEW
           <View style={styles.mainCard}>
-            <Text style={styles.bigEmoji}>😴</Text>
             <Text style={styles.cardTitle}>You're Sleeping...</Text>
 
             {/* Elapsed Time Display */}
@@ -155,12 +153,12 @@ export default function SleepLogScreen() {
               <Text style={styles.timeLabel}>Time Asleep</Text>
               <Text style={styles.timeValue}>{formatElapsedTime(elapsedTime)}</Text>
               <Text style={[styles.qualityBadge, { backgroundColor: quality.color }]}>
-                {quality.emoji} {quality.text}
+                {quality.text}
               </Text>
 
               {elapsedTime >= 8 && elapsedTime <= 10 && (
                 <View style={styles.rewardBadge}>
-                  <Text style={styles.rewardText}>🐑 You'll earn a sheep!</Text>
+                  <Text style={styles.rewardText}>You'll earn a sheep!</Text>
                 </View>
               )}
             </View>
@@ -176,26 +174,26 @@ export default function SleepLogScreen() {
               style={styles.wakeButton}
               onPress={handleEndSleep}
             >
-              <Text style={styles.wakeButtonText}>☀️ I Woke Up!</Text>
+              <Text style={styles.wakeButtonText}>I Woke Up!</Text>
             </TouchableOpacity>
           </View>
         )}
 
         {/* Tips Card */}
         <View style={styles.tipsCard}>
-          <Text style={styles.tipsTitle}>💡 How It Works</Text>
+          <Text style={styles.tipsTitle}>How It Works</Text>
           <Text style={styles.tip}>
             • Tap "I'm Going to Sleep" when you go to bed
           </Text>
           <Text style={styles.tip}>
             • Tap "I Woke Up!" when you wake up in the morning
           </Text>
-          <Text style={styles.tip}>• Sleep 8-10 hours to earn sheep 🐑</Text>
+          <Text style={styles.tip}>• Sleep 8-10 hours to earn sheep</Text>
           <Text style={styles.tip}>
             • Keep your streak to earn Shepherd Tokens
           </Text>
           <Text style={styles.tip}>
-            • Avoid 3 bad nights or lose a sheep! 🍳
+            • Avoid 3 bad nights or lose a sheep!
           </Text>
         </View>
       </View>
@@ -240,10 +238,6 @@ const styles = StyleSheet.create({
     padding: 30,
     marginBottom: 20,
     alignItems: 'center',
-  },
-  bigEmoji: {
-    fontSize: 80,
-    marginBottom: 20,
   },
   cardTitle: {
     fontSize: 14,

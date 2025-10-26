@@ -129,18 +129,18 @@ export default function HomeScreen() {
   }, [user?.sheep.length]); // Re-run when sheep count changes
 
   const getStreakMessage = () => {
-    if (!user) return 'Welcome to Sheepify! 🐑';
+    if (!user) return 'Welcome to Sheepify!';
 
     if (user.streak >= 7) {
-      return `Amazing! ${user.streak} night streak! 🌟✨`;
+      return `Amazing! ${user.streak} night streak!`;
     } else if (user.streak >= 3) {
-      return `Great job! ${user.streak} nights in a row! 🔥`;
+      return `Great job! ${user.streak} nights in a row!`;
     } else if (user.streak > 0) {
-      return `Keep it up! ${user.streak} night streak! 💪`;
+      return `Keep it up! ${user.streak} night streak!`;
     } else if (user.penalties.isInPenalty) {
-      return 'Get back on track! 2 good nights needed 🍳';
+      return 'Get back on track! 2 good nights needed';
     } else {
-      return 'Start your sleep journey tonight! 🌙';
+      return 'Start your sleep journey tonight!';
     }
   };
 
@@ -162,7 +162,7 @@ export default function HomeScreen() {
 
         {/* Sun Icon - Below Header */}
         <View style={styles.sunContainer}>
-          <Text style={styles.sun}>☀️</Text>
+          <Text style={styles.sun}>SUN</Text>
         </View>
 
         {/* 3D Farm Platform with Animated Windmill */}
@@ -203,7 +203,7 @@ export default function HomeScreen() {
           style={styles.deleteAllSheepButton}
           onPress={handleDeleteAllSheep}
         >
-          <Text style={styles.deleteAllSheepText}>🗑️ Delete All</Text>
+          <Text style={styles.deleteAllSheepText}>Delete All</Text>
         </TouchableOpacity>
 
         {/* Spawn Sheep Button - Testing */}
@@ -213,7 +213,7 @@ export default function HomeScreen() {
           disabled={!hasAvailableSpots()}
         >
           <Text style={styles.spawnSheepText}>
-            🐑 Spawn Sheep ({getOccupiedCount()}/{getTotalSpots()})
+            Spawn Sheep ({getOccupiedCount()}/{getTotalSpots()})
           </Text>
         </TouchableOpacity>
 
@@ -222,7 +222,7 @@ export default function HomeScreen() {
           style={styles.logSleepButton}
           onPress={() => router.push('/sleep-log')}
         >
-          <Text style={styles.logSleepText}>💤 Log Sleep</Text>
+          <Text style={styles.logSleepText}>Log Sleep</Text>
         </TouchableOpacity>
       </View>
     );
@@ -253,20 +253,20 @@ export default function HomeScreen() {
           <View style={styles.statRow}>
             <Text style={styles.statLabel}>Sleep Streak</Text>
             <Text style={styles.statValue}>
-              {user?.streak || 0} {user?.streak ? '🔥' : ''}
+              {user?.streak || 0}
             </Text>
           </View>
           <View style={styles.statRow}>
             <Text style={styles.statLabel}>Wool Blocks</Text>
-            <Text style={styles.statValue}>{user?.woolBlocks || 0} 🧶</Text>
+            <Text style={styles.statValue}>{user?.woolBlocks || 0}</Text>
           </View>
           <View style={styles.statRow}>
             <Text style={styles.statLabel}>Shepherd Tokens</Text>
-            <Text style={styles.statValue}>{user?.shepherdTokens || 0} 🏆</Text>
+            <Text style={styles.statValue}>{user?.shepherdTokens || 0}</Text>
           </View>
           <View style={styles.statRow}>
             <Text style={styles.statLabel}>Sheep</Text>
-            <Text style={styles.statValue}>{aliveSheep} 🐑</Text>
+            <Text style={styles.statValue}>{aliveSheep}</Text>
           </View>
         </View>
       </View>
@@ -349,7 +349,10 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   sun: {
-    fontSize: 40,
+    fontSize: 12,
+    fontFamily: 'PressStart2P_400Regular',
+    color: '#ffd93d',
+    fontWeight: '400',
   },
   currencyBar: {
     position: 'absolute',
