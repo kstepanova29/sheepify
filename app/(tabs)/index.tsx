@@ -594,9 +594,9 @@ const styles = StyleSheet.create({
   },
   speechBubble: {
     position: 'absolute',
-    top: -100,  // Positioned above Shleepy's head
-    width: 300,
-    height: 120,
+    top: -140,  // Positioned above Shleepy's head
+    width: 380,  // Increased width
+    height: 150,  // Increased height
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -606,15 +606,15 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   speechBubbleText: {
-    fontSize: 8,
+    fontSize: 9,  // Slightly larger font
     fontFamily: 'PressStart2P_400Regular',
     color: '#2c2c2c',
     textAlign: 'center',
-    paddingHorizontal: 25,
-    paddingVertical: 15,
-    lineHeight: 12,
+    paddingHorizontal: 40,  // More padding for better spacing
+    paddingVertical: 20,
+    lineHeight: 14,  // Better line spacing
     zIndex: 1,
-    maxWidth: 240,  // Ensure text stays within white portion
+    maxWidth: 300,  // Increased to fit more text within white portion
   },
   statsCard: {
     marginHorizontal: 30,
