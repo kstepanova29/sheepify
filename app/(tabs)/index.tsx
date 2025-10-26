@@ -314,19 +314,21 @@ const styles = StyleSheet.create({
   // Farm Screen Styles
   cloudHeaderContainer: {
     position: 'absolute',
-    top: 10,  // Moving UP more (smaller value = higher on screen)
+    top: -20,  // Moving UP more (smaller value = higher on screen)
     left: SCREEN_WIDTH * -0.15,  // Even wider cloud
     right: SCREEN_WIDTH * -0.15,  // Even wider cloud
-    height: 280,  // 2x original height for bigger cloud
+    height: 240,  // 2x original height for bigger cloud
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 10,
+    
   },
   cloudHeader: {
     position: 'absolute',
     width: '100%',
     height: '100%',
     zIndex: 1,
+    transform: [{ scaleX: 1.2 }],
   },
   farmName: {
     fontSize: 14,  // Slightly bigger but still fits in cloud
@@ -337,6 +339,8 @@ const styles = StyleSheet.create({
     fontFamily: 'PressStart2P_400Regular',  // Retro 8-bit pixel font
     letterSpacing: 0,  // Normal spacing
     lineHeight: 18,  // Adjusted for font size
+    transform: [{ translateY: 17 }],
+
   },
   sunContainer: {
     position: 'absolute',
