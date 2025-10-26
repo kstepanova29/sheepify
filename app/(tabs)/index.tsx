@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useGameStore } from '../../store/gameStore';
 import { getRandomPositionInDiamond } from '../../utils/sheepSpawner';
 
@@ -20,6 +21,57 @@ export default function HomeScreen() {
   const flatListRef = useRef<FlatList>(null);
   const sheepPositionsRef = useRef<Map<string, { x: number; y: number }>>(new Map());
   const [, forceUpdate] = useState(0); // Force re-render when positions are loaded
+  const [isNightMode, setIsNightMode] = useState(false);
+  const [manualOverride, setManualOverride] = useState(false);
+  const [moonFrame, setMoonFrame] = useState(0);
+  const [sheepFrame, setSheepFrame] = useState(0);
+
+  // Check if current time is night (7pm-5am)
+  const checkIsNightTime = () => {
+    const now = new Date();
+    const hour = now.getHours();
+    return hour >= 19 || hour < 5; // 7pm (19:00) to 5am
+  };
+
+  // Update night mode based on actual time
+  useEffect(() => {
+    if (!manualOverride) {
+      setIsNightMode(checkIsNightTime());
+
+      // Update every minute to check for day/night changes
+      const interval = setInterval(() => {
+        setIsNightMode(checkIsNightTime());
+      }, 60000); // Check every minute
+
+      return () => clearInterval(interval);
+    }
+  }, [manualOverride]);
+
+  // Animate moon frames (switch every second)
+  useEffect(() => {
+    if (isNightMode) {
+      const interval = setInterval(() => {
+        setMoonFrame(prev => (prev === 0 ? 1 : 0));
+      }, 1000); // Switch frames every 1 second
+
+      return () => clearInterval(interval);
+    }
+  }, [isNightMode]);
+
+  // Animate sheep frames (switch every second)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSheepFrame(prev => (prev === 0 ? 1 : 0));
+    }, 1000); // Switch frames every 1 second
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Toggle day/night for testing
+  const toggleDayNight = () => {
+    setManualOverride(true);
+    setIsNightMode(!isNightMode);
+  };
 
   const handleSpawnSheep = async () => {
     if (!user) return;
@@ -96,8 +148,16 @@ export default function HomeScreen() {
   const FarmScreen = () => {
     const aliveSheep = user?.sheep.filter(s => s.isAlive) || [];
 
+    const Container = isNightMode ? View : LinearGradient;
+    const containerProps = isNightMode
+      ? { style: [styles.screen, styles.nightBackground] }
+      : {
+          colors: ['#97f0ff', '#e9ebee', '#b8d5fe'],
+          style: styles.screen,
+        };
+
     return (
-      <View style={styles.screen}>
+      <Container {...containerProps}>
         {/* Farm Name Cloud Header */}
         <View style={styles.cloudHeaderContainer}>
           <Image
@@ -108,9 +168,19 @@ export default function HomeScreen() {
           <Text style={styles.farmName}>{user?.username}'s farm</Text>
         </View>
 
-        {/* Sun Icon - Below Header */}
+        {/* Sun/Moon Icon - Below Header */}
         <View style={styles.sunContainer}>
-          <Text style={styles.sun}>☀️</Text>
+          <Image
+            source={
+              isNightMode
+                ? moonFrame === 0
+                  ? require('@/moon-frame1.png')
+                  : require('@/moon-frame2.png')
+                : require('@/sun.png.png')
+            }
+            style={isNightMode ? styles.moon : styles.sun}
+            resizeMode="contain"
+          />
         </View>
 
         {/* 3D Farm Platform */}
@@ -129,8 +199,12 @@ export default function HomeScreen() {
 
             return (
               <Image
-                key={sheep.id}
-                source={require('@/assets/sprites/sheep/default.png')}
+                key={`${sheep.id}-${sheepFrame}`}
+                source={
+                  sheepFrame === 0
+                    ? require('@/assets/sprites/sheep/sheep-frame1.png')
+                    : require('@/assets/sprites/sheep/sheep-frame2.png')
+                }
                 style={[
                   styles.sheepSprite,
                   {
@@ -143,6 +217,16 @@ export default function HomeScreen() {
             );
           })}
         </View>
+
+        {/* Toggle Day/Night Button - Testing */}
+        <TouchableOpacity
+          style={styles.toggleDayNightButton}
+          onPress={toggleDayNight}
+        >
+          <Text style={styles.toggleDayNightText}>
+            {isNightMode ? '☀️ Switch to Day' : '🌙 Switch to Night'}
+          </Text>
+        </TouchableOpacity>
 
         {/* Delete All Sheep Button - Testing */}
         <TouchableOpacity
@@ -167,7 +251,7 @@ export default function HomeScreen() {
         >
           <Text style={styles.logSleepText}>💤 Log Sleep</Text>
         </TouchableOpacity>
-      </View>
+      </Container>
     );
   };
 
@@ -246,16 +330,21 @@ const styles = StyleSheet.create({
   screen: {
     width: SCREEN_WIDTH,
     height: SCREEN_HEIGHT,
-    backgroundColor: '#1a1a2e',
+  },
+  nightBackground: {
+    backgroundColor: '#1a1a2e', // Dark blue (current)
+  },
+  dayBackground: {
+    backgroundColor: '#87CEEB', // Sky blue
   },
 
   // Farm Screen Styles
   cloudHeaderContainer: {
     position: 'absolute',
-    top: 40,
-    left: SCREEN_WIDTH * 0.02,
-    right: SCREEN_WIDTH * 0.02,
-    height: 140,
+    top: 60,
+    left: SCREEN_WIDTH * 0.05,
+    right: SCREEN_WIDTH * 0.05,
+    height: 120,
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 10,
@@ -265,22 +354,29 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     zIndex: 1,
+    tintColor: undefined, // Ensure no tinting
   },
   farmName: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#4A90E2',
     textAlign: 'center',
     zIndex: 2,
+    paddingHorizontal: 20,
   },
   sunContainer: {
     position: 'absolute',
     top: SCREEN_HEIGHT * 0.20,
-    right: 30,
+    left: 30,
     zIndex: 10,
   },
   sun: {
-    fontSize: 40,
+    width: 240,
+    height: 240,
+  },
+  moon: {
+    width: 180,
+    height: 180,
   },
   currencyBar: {
     position: 'absolute',
@@ -373,6 +469,22 @@ const styles = StyleSheet.create({
   },
   statValue: {
     fontSize: 18,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  toggleDayNightButton: {
+    position: 'absolute',
+    bottom: 250,
+    left: 30,
+    right: 30,
+    padding: 15,
+    backgroundColor: '#9b59b6',
+    borderRadius: 12,
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  toggleDayNightText: {
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#fff',
   },
