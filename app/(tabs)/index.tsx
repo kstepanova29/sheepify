@@ -102,7 +102,7 @@ export default function HomeScreen() {
             if (spot) {
               // Convert from image coordinates to platform coordinates
               const x = (spot.x / imageWidth) * platformWidth - 30; // Center sheep (60/2)
-              const y = (spot.y / imageHeight) * platformHeight - 30;
+              const y = (spot.y / imageHeight) * platformHeight - 30 - 5; // Move up 5 pixels
               sheepPositionsRef.current.set(sheep.id, { x, y });
             }
           } else {
