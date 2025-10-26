@@ -244,7 +244,6 @@ export default function HomeScreen() {
                   styles.moonSpritesheet,
                   { transform: [{ translateX: moonFrame * -180 }] }
                 ]}
-                resizeMode="contain"
               />
             </View>
           ) : (
@@ -262,9 +261,8 @@ export default function HomeScreen() {
             source={IMAGES.windmillSpritesheet}
             style={[
               styles.windmillSpritesheet,
-              { transform: [{ translateX: windmillFrame * -(SCREEN_WIDTH * 0.84) }] }
+              { transform: [{ translateX: windmillFrame * -315 }] }
             ]}
-            resizeMode="contain"
           />
         </View>
 
@@ -292,7 +290,6 @@ export default function HomeScreen() {
                     styles.sheepSpritesheet,
                     { transform: [{ translateX: sheepFrame * -60 }] }
                   ]}
-                  resizeMode="contain"
                 />
               </View>
             );
@@ -509,8 +506,8 @@ const styles = StyleSheet.create({
     overflow: 'hidden', // Hide parts of spritesheet outside frame
   },
   windmillSpritesheet: {
-    width: SCREEN_WIDTH * 0.84 * 2, // 2 frames wide
-    height: SCREEN_HEIGHT * 0.48,
+    width: 630, // 2 frames * 315px
+    height: 389,
   },
   sheepContainer: {
     position: 'absolute',
