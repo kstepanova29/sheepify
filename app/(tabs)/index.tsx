@@ -148,16 +148,18 @@ export default function HomeScreen() {
   const FarmScreen = () => {
     const aliveSheep = user?.sheep.filter(s => s.isAlive) || [];
 
-    const Container = isNightMode ? View : LinearGradient;
     const containerProps = isNightMode
-      ? { style: [styles.screen, styles.nightBackground] }
+      ? {
+          colors: ['#0f3785', '#211456', '#00142f'],
+          style: styles.screen,
+        }
       : {
           colors: ['#97f0ff', '#e9ebee', '#b8d5fe'],
           style: styles.screen,
         };
 
     return (
-      <Container {...containerProps}>
+      <LinearGradient {...containerProps}>
         {/* Farm Name Cloud Header */}
         <View style={styles.cloudHeaderContainer}>
           <Image
@@ -251,7 +253,7 @@ export default function HomeScreen() {
         >
           <Text style={styles.logSleepText}>💤 Log Sleep</Text>
         </TouchableOpacity>
-      </Container>
+      </LinearGradient>
     );
   };
 
